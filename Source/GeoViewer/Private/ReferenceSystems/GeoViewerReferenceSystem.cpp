@@ -1,5 +1,13 @@
 ﻿#include "ReferenceSystems/GeoViewerReferenceSystem.h"
 
+AGeoViewerReferenceSystem::AGeoViewerReferenceSystem()
+{
+	bOriginLocationInProjectedCRS = false;
+	OriginLatitude = 54;
+	OriginLongitude = -2;
+	ProjectedCRS = "EPSG:27700";
+}
+
 void AGeoViewerReferenceSystem::SetGeographicalOrigin(const FGeographicCoordinates WorldOrigin)
 {
 	bOriginLocationInProjectedCRS = false;
@@ -15,11 +23,11 @@ FGeographicCoordinates AGeoViewerReferenceSystem::GetGeographicalOrigin()
 	
 	if (PlanetShape == EPlanetShape::RoundPlanet && bOriginAtPlanetCenter)
 	{
-		const FCartesianCoordinates ENUOrigin(0, 0, 0);
+		const FVector ENUOrigin(0, 0, 0);
 		ECEFToGeographic(ENUOrigin, GeoCoords);
 	} else if (bOriginLocationInProjectedCRS)
 	{
-		const FCartesianCoordinates ProjectedOrigin(
+		const FVector ProjectedOrigin(
 			OriginProjectedCoordinatesEasting,
 			OriginProjectedCoordinatesNorthing,
 			OriginProjectedCoordinatesUp);
@@ -36,40 +44,6 @@ FGeographicCoordinates AGeoViewerReferenceSystem::GetGeographicalOrigin()
 FString AGeoViewerReferenceSystem::EPSGToString(const uint16 EPSG)
 {
 	return TEXT("EPSG:") + FString::FromInt(EPSG);
-}
-
-void AGeoViewerReferenceSystem::EngineToGeographic(const FVector& EngineCoordinates,
-	FGeographicCoordinates& GeographicCoordinates)
-{
-	if (PlanetShape == EPlanetShape::FlatPlanet)
-	{
-		FCartesianCoordinates ProjectedCoordinates;
-		EngineToProjected(EngineCoordinates, ProjectedCoordinates);
-		ProjectedToGeographic(ProjectedCoordinates, GeographicCoordinates);
-	} else
-	{
-		//For round planets there isn't a projection so should be initially converted to ECEF coordinates
-		FCartesianCoordinates ECEFCoordinates;
-		EngineToECEF(EngineCoordinates, ECEFCoordinates);
-		ECEFToGeographic(ECEFCoordinates, GeographicCoordinates);
-	}
-}
-
-void AGeoViewerReferenceSystem::GeographicToEngine(const FGeographicCoordinates& GeographicCoordinates,
-	FVector& EngineCoordinates)
-{
-	if (PlanetShape == EPlanetShape::FlatPlanet)
-	{
-		FCartesianCoordinates ProjectedCoordinates;
-		GeographicToProjected(GeographicCoordinates, ProjectedCoordinates);
-		ProjectedToEngine(ProjectedCoordinates, EngineCoordinates);
-	} else
-	{
-		//For round planets there isn't a projection so should be initially converted to ECEF coordinates
-		FCartesianCoordinates ECEFCoordinates;
-		GeographicToECEF(GeographicCoordinates, ECEFCoordinates);
-		ECEFToEngine(ECEFCoordinates, EngineCoordinates);
-	}
 }
 
 void AGeoViewerReferenceSystem::GetGeographicalCoordinatesAtOffset(const FGeographicCoordinates StartPos,

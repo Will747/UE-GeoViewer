@@ -25,8 +25,8 @@ public:
 	virtual TSharedPtr<SWidget> GetInlineContent() const override { return ToolkitWidget; }
 	// End IToolkit interface
 	
-	UWorld* GetWorld();
-	AMapOverlayActor* GetOverlayActor();
+	UWorld* GetWorld() const;
+	AMapOverlayActor* GetOverlayActor() const;
 
 private:
 	FText GetOverlayButtonText() const;
@@ -51,7 +51,6 @@ public:
 	void Construct(const FArguments& InArgs, TSharedRef<FGeoViewerEdModeToolkit> InParentToolkit);
 
 private:
-	FText GetProjectedCoordinatesText() const;
 	FText GetGeoCoordinatesText() const;
 
 	TWeakPtr<FGeoViewerEdModeToolkit> ParentToolkit;

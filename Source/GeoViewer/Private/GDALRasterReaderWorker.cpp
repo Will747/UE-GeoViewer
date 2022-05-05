@@ -1,6 +1,4 @@
 ﻿#include "GDALRasterReaderWorker.h"
-
-#include "GDALHelpers.h"
 #include "GDALWarp.h"
 
 FGDALRasterReaderWorker::FGDALRasterReaderWorker(

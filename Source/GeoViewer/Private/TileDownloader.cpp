@@ -1,5 +1,4 @@
 #include "TileDownloader.h"
-#include "GDALHelpers.h"
 #include "GDALWarp.h"
 #include "HttpModule.h"
 #include "IImageWrapper.h"
@@ -15,7 +14,7 @@ FTileDownloader::~FTileDownloader()
 {
 }
 
-void FTileDownloader::SetMetaData(FCartesianCoordinates InTopCorner, FVector2D InPixelSize, uint16 InEPSG)
+void FTileDownloader::SetMetaData(FVector InTopCorner, FVector2D InPixelSize, uint16 InEPSG)
 {
 	TopCorner = InTopCorner;
 	PixelSize = InPixelSize;

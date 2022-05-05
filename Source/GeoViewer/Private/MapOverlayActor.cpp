@@ -1,8 +1,9 @@
 #include "MapOverlayActor.h"
-#include "Components/DecalComponent.h"
+
 #include "Materials/MaterialInstanceDynamic.h"
 #include "GeoReferencingSystem.h"
 #include "GeoViewer.h"
+#include "LevelEditorViewport.h"
 #include "OverlayTileGenerator.h"
 #include "Kismet/GameplayStatics.h"
 #include "ReferenceSystems/WorldReferenceSystem.h"
@@ -60,12 +61,11 @@ void AMapOverlayActor::Tick(float DeltaTime)
 
 	if (bOverlayActive)
 	{
-		UWorld* World = GetWorld();
-		if (World && World->ViewLocationsRenderedLastFrame.Num() >= 1)
+		if (const UWorld* World = GetWorld())
 		{
-			// Get user position based on the last frame
-			const FVector UserPosition = World->ViewLocationsRenderedLastFrame[0];
-
+			const FViewportCursorLocation Cursor = GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
+			const FVector UserPosition = Cursor.GetOrigin();
+			
 			// Calculate the tile position/index between the origin and user
 			const int TileSize = EdModeConfig->TileSize;
 			const int X = UserPosition.X / TileSize;
@@ -91,7 +91,7 @@ void AMapOverlayActor::Tick(float DeltaTime)
 					Key);
 				}
 			}
-		}	
+		}
 	}
 }
 
@@ -137,6 +137,11 @@ void AMapOverlayActor::SetConfig(UGeoViewerEdModeConfig* InConfig)
 {
 	EdModeConfig = InConfig;
 	ReloadConfig();
+}
+
+bool AMapOverlayActor::IsMissingConfig() const
+{
+	return !EdModeConfig.IsValid();
 }
 
 void AMapOverlayActor::ReloadConfig()

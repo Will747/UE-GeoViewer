@@ -1,7 +1,6 @@
 ﻿#pragma once
-#include "CartesianCoordinates.h"
 #include "IImageWrapper.h"
-#include "SmartPointers.h"
+#include "GDALSmartPointers.h"
 
 /**
  * Class containing static functions used to help warp an image between
@@ -38,7 +37,7 @@ public:
 	 */
 	static void SetDatasetMetaData(
 		GDALDatasetRef& Dataset,
-		FCartesianCoordinates TopCorner,
+		FVector TopCorner,
 		const FVector2D PixelSize,
 		uint16 EPSG
 		);
@@ -68,4 +67,7 @@ public:
 private:
 	/** Converts to a WKT if in a valid EPSG code */
 	static FString ConvertToWKT(FString CRS);
+	static FString ConvertToWKT(uint16 EPSGInt);
+
+	static FString ConvertToFString(char* Text);
 };

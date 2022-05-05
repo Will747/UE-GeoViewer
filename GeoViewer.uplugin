@@ -25,10 +25,6 @@
 		{
 			"Name": "GeoReferencing",
 			"Enabled": true
-		},
-		{
-			"Name": "UnrealGDAL",
-			"Enabled": true
 		}
 	]
 }

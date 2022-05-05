@@ -13,10 +13,10 @@ void FWebMapTileAPI::LoadTile()
 	if (TileReferenceSystem)
 	{
 		//Get the bounds in projected coordinates
-		FCartesianCoordinates TopCornerProj;
+		FVector TopCornerProj;
 		TileReferenceSystem->GeographicToProjectedWithEPSG(Bounds.TopLeft, TopCornerProj, EPSG);
 
-		FCartesianCoordinates BottomCornerProj;
+		FVector BottomCornerProj;
 		TileReferenceSystem->GeographicToProjectedWithEPSG(Bounds.BottomRight, BottomCornerProj, EPSG);
 
 		if (TopCornerProj.Y <= BottomCornerProj.Y)
@@ -34,7 +34,7 @@ void FWebMapTileAPI::LoadTile()
 		}
 		
 		//Download all segments needed till the 'CurrentPosition' is beyond the bottom corner
-		FCartesianCoordinates CurrentPosition = TopCornerProj;
+		FVector CurrentPosition = TopCornerProj;
 		
 		FVector2D PositionIndex = FVector2D(0, 0); //Position of a segment in relation to the other segments.
 		while (CurrentPosition.Y > BottomCornerProj.Y)
@@ -56,7 +56,7 @@ void FWebMapTileAPI::LoadTile()
 					SegmentTopCornerGeo
 					);
 				
-				FCartesianCoordinates SegmentTopCornerProj;
+				FVector SegmentTopCornerProj;
 				TileReferenceSystem->GeographicToProjectedWithEPSG(SegmentTopCornerGeo, SegmentTopCornerProj, EPSG);
 
 				// height in meters of the tile / number of vertical pixels
@@ -138,7 +138,7 @@ int FWebMapTileAPI::CalculateTileSize(double Latitude) const
 {
 	// https://docs.microsoft.com/en-us/bingmaps/articles/understanding-scale-and-resolution
 	// Meters/Pixel
-	const float PixelSize = (FMath::Cos(Latitude * PI / 180) * 156543.03392) / FMath::Pow(2, ZoomLevel);
+	const float PixelSize = (FMath::Cos(Latitude * PI / 180) * 156543.03392) / FMath::Pow(2.0f, ZoomLevel);
 	
 	return PixelSize * TileResolution;
 }

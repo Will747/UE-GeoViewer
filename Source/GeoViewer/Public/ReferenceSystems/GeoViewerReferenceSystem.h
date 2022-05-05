@@ -5,9 +5,7 @@
 #include "GeoViewerReferenceSystem.generated.h"
 
 /**
- * Extends the built in geographical referencing system, including
- * being able to convert directly between Engine coordinates and
- * Geographic coordinates.
+ * Extends the built in geographical referencing system.
  * This actor should not be placed in the world instead use 'WorldReferenceSystem'.
  */
 UCLASS()
@@ -16,6 +14,8 @@ class GEOVIEWER_API AGeoViewerReferenceSystem : public AGeoReferencingSystem
 	GENERATED_BODY()
 	
 public:
+	AGeoViewerReferenceSystem();
+	
 	/**
 	 * Sets the geographical origin of the reference system.
 	 * As the origin is stored as an integer value any decimal origin would be rounded.
@@ -34,20 +34,6 @@ public:
 	 * @returm The EPSG code as a string with 'EPSG:' prefix.
 	 */
 	static FString EPSGToString(uint16 EPSG);
-
-	/**
-	 *	Converts engine coordinates to geographical coordinates.
-	 *	@param EngineCoordinates The coordinates from the UE world.
-	 *	@param GeographicCoordinates The geographical coordinates based on the EngineCoordinates parameter.
-	 */
-	void EngineToGeographic(const FVector& EngineCoordinates, FGeographicCoordinates& GeographicCoordinates);
-
-	/**
-	 *	Converts geographical coordinates to engine coordinates.
-	 *	@param GeographicCoordinates The geographical coordinates to be converted.
-	 *	@param EngineCoordinates The engine coordinates based on the GeographicalCoordinates parameter.
-	 */
-	void GeographicToEngine(const FGeographicCoordinates& GeographicCoordinates, FVector& EngineCoordinates);
 	
 	/**
 	 * Calculates new geographical coordinates depending on the distance in meters travelled across the surface

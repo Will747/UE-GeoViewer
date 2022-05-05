@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "GDALRasterReaderWorker.h"
 #include "OverlayTileGenerator.h"
-#include "SmartPointers.h"
+#include "GDALSmartPointers.h"
 #include "Components/DecalComponent.h"
 #include "OverlayTileComponent.generated.h"
 

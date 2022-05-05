@@ -1,6 +1,4 @@
 ﻿#include "GDALWarp.h"
-#include <gdalwarper.h>
-#include "GDALHelpers.h"
 #include "GeoViewer.h"
 
 GDALDatasetRef FGDALWarp::WarpDataset(GDALDatasetRef& Dataset, FString CurrentCRS, FString FinalCRS)
@@ -22,11 +20,17 @@ FString FGDALWarp::ConvertToWKT(FString CRS)
 	{
 		const FString EPSGCode = CRS.Mid(5); //Remove EPSG: prefix
 		const uint16 EPSGInt = FCString::Atoi(*EPSGCode);
-		return GDALHelpers::WktFromEPSG(EPSGInt);
+		return ConvertToWKT(EPSGInt);
 	}
 
 	// If the wrong length it may be invalid or already in the form of a WKT
 	return CRS;
+}
+
+FString FGDALWarp::ConvertToFString(char* Text)
+{
+	const CPLStringRef TextRef(Text);
+	return UTF8_TO_TCHAR(TextRef.Get());
 }
 
 GDALDatasetRef FGDALWarp::CreateDataset(TArray<uint8>& RawData, const int XSize, const int YSize, const ERGBFormat Format)
@@ -48,11 +52,11 @@ GDALDatasetRef FGDALWarp::CreateDataset(TArray<uint8>& RawData, const int XSize,
 	return mergetiff::DatasetManagement::datasetFromRaster(RasterData);
 }
 
-void FGDALWarp::SetDatasetMetaData(GDALDatasetRef& Dataset, FCartesianCoordinates TopCorner, const FVector2D PixelSize,
+void FGDALWarp::SetDatasetMetaData(GDALDatasetRef& Dataset, FVector TopCorner, const FVector2D PixelSize,
                                    const uint16 EPSG)
 {
 	//Set tile projection
-	const FString Wkt = GDALHelpers::WktFromEPSG(EPSG);
+	const FString Wkt = ConvertToWKT(EPSG);
 	GDALSetProjection(Dataset.Get(), TCHAR_TO_UTF8(*Wkt));
 
 	//Set geo transform
@@ -80,15 +84,18 @@ UTexture2D* FGDALWarp::CreateTexture2D(UObject* Outer, TArray<uint8>& RawImage, 
 		// Create new texture
 		Texture = NewObject<UTexture2D>(Outer);
 
-		// Setup platform data
-		Texture->PlatformData = new FTexturePlatformData();
-		Texture->PlatformData->SizeX = SizeX;
-		Texture->PlatformData->SizeY = SizeY;
-		Texture->PlatformData->PixelFormat = PixelFormat;
+		// Create platform data
+		FTexturePlatformData* PlatformData = new FTexturePlatformData();
+	 	Texture->SetPlatformData(PlatformData);
+
+	 	// Setup platform data
+		PlatformData->SizeX = SizeX;
+		PlatformData->SizeY = SizeY;
+		PlatformData->PixelFormat = PixelFormat;
 
 		// Create mip ready to transfer raw image from dataset
 		FTexture2DMipMap* Mip = new FTexture2DMipMap();
-		Texture->PlatformData->Mips.Add(Mip);
+		PlatformData->Mips.Add(Mip);
 		Mip->SizeX = SizeX;
 		Mip->SizeY = SizeY;
 		
@@ -109,7 +116,19 @@ UTexture2D* FGDALWarp::CreateTexture2D(UObject* Outer, TArray<uint8>& RawImage, 
 
 void FGDALWarp::GetRawImage(GDALDatasetRef& Dataset, TArray<uint8>& OutImage, int XSize, int YSize, int Channels)
 {
-	mergetiff::RasterData<uint8> RasterData =
-		GDALHelpers::AllocateAndWrap<uint8>(OutImage, Channels, YSize, XSize, 255);
+	constexpr uint8 Element = uint8();
+	OutImage.Init(Element, XSize * YSize * Channels);
+	mergetiff::RasterData RasterData(OutImage.GetData(), Channels, YSize, XSize, true);
 	mergetiff::RasterIO::readDataset<uint8>(Dataset, RasterData);
+}
+
+FString FGDALWarp::ConvertToWKT(const uint16 EPSGInt)
+{
+	OGRSpatialReference SpatialReference;
+	SpatialReference.importFromEPSG(EPSGInt);
+
+	char* Wkt;
+	SpatialReference.exportToWkt(&Wkt);
+	
+	return ConvertToFString(Wkt);
 }

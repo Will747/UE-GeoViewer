@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "GeographicCoordinates.h"
-#include "SmartPointers.h"
+#include "GDALSmartPointers.h"
 #include "ReferenceSystems/WorldReferenceSystem.h"
 
 /** Holds the corner coordinates in lon, lat for a tile */

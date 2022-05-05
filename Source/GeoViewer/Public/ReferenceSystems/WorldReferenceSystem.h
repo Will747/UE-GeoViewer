@@ -29,7 +29,7 @@ public:
 	 * @param ProjectedEPSG The projection used in the projected coordinates.
 	 */
 	void ProjectedToGeographicWithEPSG(
-		const FCartesianCoordinates& ProjectedCoordinates,
+		const FVector& ProjectedCoordinates,
 		FGeographicCoordinates& GeographicCoordinates,
 		const uint16 ProjectedEPSG
 		);
@@ -42,7 +42,7 @@ public:
 	 */
 	void GeographicToProjectedWithEPSG(
 		const FGeographicCoordinates& GeographicCoordinates,
-		FCartesianCoordinates& ProjectedCoordinates,
+		FVector& ProjectedCoordinates,
 		const uint16 ProjectedEPSG
 		);
 

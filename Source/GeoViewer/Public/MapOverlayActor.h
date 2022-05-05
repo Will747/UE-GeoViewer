@@ -14,7 +14,7 @@
  * UE world positions. This will download the data from an API specified in the editor
  * mode config and is normally spawned by the editor mode.
  */
-UCLASS(Transient)
+UCLASS()
 class GEOVIEWER_API AMapOverlayActor : public AActor
 {
 	GENERATED_BODY()
@@ -44,6 +44,9 @@ public:
 	/** Sets the config required for downloading tiles */
 	void SetConfig(UGeoViewerEdModeConfig* InConfig);
 
+	/** True if the actor is missing the EdModeConfig */
+	bool IsMissingConfig() const;
+	
 	/** Resets all tiles when the config changes */
 	void ReloadConfig();
 

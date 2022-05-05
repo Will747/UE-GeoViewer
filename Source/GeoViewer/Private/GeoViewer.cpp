@@ -3,7 +3,6 @@
 #include "GeoViewer.h"
 #include "GeoViewerEdMode.h"
 #include "GeoViewerStyle.h"
-#include "UnrealGDAL.h"
 
 #define LOCTEXT_NAMESPACE "FGeoViewerModule"
 
@@ -22,18 +21,17 @@ void FGeoViewerModule::StartupModule()
 		);
 
 	//Initialize GDAL
-	FUnrealGDALModule* UnrealGDAL = FModuleManager::Get().LoadModulePtr<FUnrealGDALModule>("UnrealGDAL");
-	UnrealGDAL->InitGDAL();
+	GDALAllRegister();
 }
 
 void FGeoViewerModule::ShutdownModule()
 {
 	FGeoViewerStyle::Shutdown();
-
+	
 	FEditorModeRegistry::Get().UnregisterMode(FGeoViewerEdMode::EM_GeoViewerEdModeId);
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FGeoViewerModule, GeoViewer)
 DEFINE_LOG_CATEGORY(LogGeoViewer);

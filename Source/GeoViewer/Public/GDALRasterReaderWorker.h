@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SmartPointers.h"
+#include "GDALSmartPointers.h"
 
 /**
  * Extracts the raw image data from a GDALDataset.

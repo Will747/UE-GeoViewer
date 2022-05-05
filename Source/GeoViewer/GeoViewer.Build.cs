@@ -29,8 +29,8 @@ public class GeoViewer : ModuleRules
                 "Engine",
 				"GeoReferencing",
 				"GDAL",
-				"UnrealGDAL"
-                // ... add other public dependencies that you statically link with here ...
+				"UnrealEd"
+				// ... add other public dependencies that you statically link with here ...
 			}
 			);
 			
@@ -43,13 +43,12 @@ public class GeoViewer : ModuleRules
                 "Slate",
 				"SlateCore",
 				"InputCore",
-				"UnrealEd",
-                "EditorStyle",
+				"EditorFramework",
+				"EditorStyle",
 				"LevelEditor",
 				"HTTP",
 				"DesktopPlatform",
-				"GeometricObjects",
-                "LandscapeEditor"
+				"LandscapeEditor"
                 // ... add private dependencies that you statically link with here ...	
 			}
 			);

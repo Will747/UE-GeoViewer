@@ -1,6 +1,4 @@
 ﻿#include "TileAPIS/GeoTileAPI.h"
-
-#include "GDALHelpers.h"
 #include "Interfaces/IPluginManager.h"
 
 FGeoTileAPI::FGeoTileAPI(

@@ -64,14 +64,14 @@ void UOverlayTileComponent::SetDataset(
 
 	// Calculate projected bounds
 	AWorldReferenceSystem* ReferenceSystem = AWorldReferenceSystem::GetWorldReferenceSystem(GetWorld());
-	const FCartesianCoordinates TopCornerProj = FCartesianCoordinates(GeoTransform[0], GeoTransform[3], 0);
+	const FVector TopCornerProj(GeoTransform[0], GeoTransform[3], 0);
 
 	// Calculate the projected size
 	const double SizeProjX = PixelNumX * GeoTransform[1];
 	const double SizeProjY = PixelNumY * GeoTransform[5];
 
 	// Calculate the bottom corner projected position
-	FCartesianCoordinates BottomCornerProj;
+	FVector BottomCornerProj;
 	BottomCornerProj.X = TopCornerProj.X + SizeProjX;
 	BottomCornerProj.Y = TopCornerProj.Y + SizeProjY;
 
@@ -114,6 +114,8 @@ void UOverlayTileComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		if (TextureWorker->bDone)
 		{
+			TextureWorker->bDone = false;
+			
 			Texture = FGDALWarp::CreateTexture2D(
 				this,
 				RawImage,

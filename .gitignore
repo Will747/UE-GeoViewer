@@ -70,3 +70,11 @@ Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Cached Tiles from the overlay
+Resources/CachedTiles/*
+
+# Include Third-party binaries
+!Source/ThirdParty/GDAL/precomputed/Win64/bin/*
+!Source/ThirdParty/GDAL/precomputed/Win64/lib/*
+

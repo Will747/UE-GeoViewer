@@ -1,9 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CartesianCoordinates.h"
 #include "GeoViewerEdModeConfig.h"
-#include "SmartPointers.h"
+#include "GDALSmartPointers.h"
 #include "Interfaces/IHttpRequest.h"
 
 /**
@@ -23,7 +22,7 @@ public:
 
 	/** Sets the geographic information ready for the dataset */
 	void SetMetaData(
-		const FCartesianCoordinates InTopCorner,
+		const FVector InTopCorner,
 		const FVector2D InPixelSize,
 		const uint16 InEPSG
 		);
@@ -41,7 +40,7 @@ private:
 	TWeakObjectPtr<UGeoViewerEdModeConfig> EdModeConfig;
 
 	/** Metadata to be added to the dataset */
-	FCartesianCoordinates TopCorner;
+	FVector TopCorner;
 	FVector2D PixelSize;
 	uint16 EPSG;
 

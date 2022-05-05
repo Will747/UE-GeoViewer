@@ -8,6 +8,7 @@
 #include "EditorModeManager.h"
 #include "EngineUtils.h"
 #include "GeoReferencingSystem.h"
+#include "LevelEditorViewport.h"
 
 #define LOCTEXT_NAMESPACE "GeoViewerEdModeUI"
 
@@ -18,10 +19,13 @@ FGeoViewerEdModeToolkit::FGeoViewerEdModeToolkit()
 
 void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHost)
 {
-	//Create Details panel
+	// Create details panel
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	const FDetailsViewArgs DetailsViewArgs(false, false, false, FDetailsViewArgs::HideNameArea);
 
+	// Create details view
+	FDetailsViewArgs DetailsViewArgs;
+	DetailsViewArgs.bAllowSearch = false;
+	DetailsViewArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
 	DetailsPanel = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 
 	if (const FGeoViewerEdMode* EdMode = GetEditorMode())
@@ -35,11 +39,11 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 		bOverlayActive = OverlayActor->GetOverlayState();
 	}
 
-	//Create Widget
+	// Create Widget
 	SAssignNew(ToolkitWidget, SBorder)
 		[
 			SNew(SVerticalBox)
-			+ SVerticalBox::Slot() //Overlay activate button
+			+ SVerticalBox::Slot() // Overlay activate button
 			.AutoHeight()
 			.HAlign(HAlign_Center)
 			[
@@ -55,12 +59,12 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 					]
 				]
 			]
-			+ SVerticalBox::Slot() //Current Position Data
+			+ SVerticalBox::Slot() // Current Position Data
 			.AutoHeight()
 			[
 				SNew(SGeoViewerCoordinates, SharedThis(this))
 			]
-			+ SVerticalBox::Slot() //Details panel
+			+ SVerticalBox::Slot() // Details panel
 			[
 				DetailsPanel.ToSharedRef()
 			]
@@ -79,7 +83,7 @@ FText FGeoViewerEdModeToolkit::GetBaseToolkitName() const
 	return NSLOCTEXT("GeoViewerEdModeToolkit", "DisplayName", "GeoViewerEdMode Tool");
 }
 
-UWorld* FGeoViewerEdModeToolkit::GetWorld()
+UWorld* FGeoViewerEdModeToolkit::GetWorld() const
 {
 	if (const FGeoViewerEdMode* EdMode = GetEditorMode())
 	{
@@ -120,7 +124,7 @@ FReply FGeoViewerEdModeToolkit::OnOverlayButtonPressed()
 	return FReply::Handled();
 }
 
-AMapOverlayActor* FGeoViewerEdModeToolkit::GetOverlayActor()
+AMapOverlayActor* FGeoViewerEdModeToolkit::GetOverlayActor() const
 {
 	if (FGeoViewerEdMode* EdMode = GetEditorMode())
 	{
@@ -157,62 +161,30 @@ void SGeoViewerCoordinates::Construct(const FArguments& InArgs, TSharedRef<FGeoV
 					SNew(STextBlock)
 					.Text(this, &SGeoViewerCoordinates::GetGeoCoordinatesText)
 				]
-				+ SVerticalBox::Slot()
-				[
-					SNew(STextBlock)
-					.Text(NSLOCTEXT("GeoViewer", "ProjectedPositionLabel", "Projected Position:"))
-				]
-				+ SVerticalBox::Slot()
-				[
-					SNew(STextBlock)
-					.Text(this, &SGeoViewerCoordinates::GetProjectedCoordinatesText)
-				]
 			]
 		];
 
-}
-
-FText SGeoViewerCoordinates::GetProjectedCoordinatesText() const
-{
-	if (ParentToolkit.IsValid())
-	{
-		UWorld* World = ParentToolkit.Pin()->GetWorld();
-		if (World && World->ViewLocationsRenderedLastFrame.Num() >= 1)
-		{
-			AWorldReferenceSystem* GeoSystem = AWorldReferenceSystem::GetWorldReferenceSystem(World);
-
-			if (GeoSystem)
-			{
-				// Convert world coordinates to projected coordinates
-				FCartesianCoordinates ProjectedCoordinates;
-				GeoSystem->EngineToProjected(World->ViewLocationsRenderedLastFrame[0], ProjectedCoordinates);
-
-				return ProjectedCoordinates.ToFullText();
-			}
-		}	
-	}
-
-	return FText();
 }
 
 FText SGeoViewerCoordinates::GetGeoCoordinatesText() const
 {
 	if (ParentToolkit.IsValid())
 	{
-		UWorld* World = ParentToolkit.Pin()->GetWorld();
-		if (World && World->ViewLocationsRenderedLastFrame.Num() >= 1)
+		// Find the world position of the viewport
+		const FViewportCursorLocation ViewportCursor =
+			GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
+		const FVector UserPosition = ViewportCursor.GetOrigin();
+
+		// Convert the engine coordinates to geographic
+		const UWorld* World = ParentToolkit.Pin()->GetWorld();
+		if (World)
 		{
 			AWorldReferenceSystem* GeoSystem = AWorldReferenceSystem::GetWorldReferenceSystem(World);
 
 			if (GeoSystem)
 			{
-				// Convert world coordinates to projected coordinates
-				FCartesianCoordinates ProjectedCoordinates;
-				GeoSystem->EngineToProjected(World->ViewLocationsRenderedLastFrame[0], ProjectedCoordinates);
-
-				// Convert the projected coordinates to geographic coordinates
 				FGeographicCoordinates GeographicCoordinates;
-				GeoSystem->ProjectedToGeographic(ProjectedCoordinates, GeographicCoordinates);
+				GeoSystem->EngineToGeographic(UserPosition, GeographicCoordinates);
 				return GeographicCoordinates.ToFullText();
 			}
 		}

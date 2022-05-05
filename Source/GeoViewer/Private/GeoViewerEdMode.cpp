@@ -3,7 +3,6 @@
 #include "GeoViewerEdMode.h"
 
 #include "GeoViewerEdModeToolkit.h"
-#include "Toolkits/ToolkitManager.h"
 #include "EditorModeManager.h"
 
 const FEditorModeID FGeoViewerEdMode::EM_GeoViewerEdModeId = TEXT("EM_GeoViewerEdMode");
@@ -16,19 +15,18 @@ FGeoViewerEdMode::FGeoViewerEdMode()
 
 FGeoViewerEdMode::~FGeoViewerEdMode()
 {
-
 }
 
 void FGeoViewerEdMode::Enter()
 {
 	FEdMode::Enter();
 
-	if (!Toolkit.IsValid() && UsesToolkits())
+	if (!Toolkit.IsValid())
 	{
 		Toolkit = MakeShareable(new FGeoViewerEdModeToolkit);
 		Toolkit->Init(Owner->GetToolkitHost());
 	}
-
+	
 	UISettings->Load();
 
 	if (AMapOverlayActor* CurrentMapOverlayActor = GetOverlayActor())
@@ -39,12 +37,6 @@ void FGeoViewerEdMode::Enter()
 
 void FGeoViewerEdMode::Exit()
 {
-	if (Toolkit.IsValid())
-	{
-		FToolkitManager::Get().CloseToolkit(Toolkit.ToSharedRef());
-		Toolkit.Reset();
-	}
-
 	UISettings->Save();
 	
 	// Call base Exit method to ensure proper cleanup
@@ -82,6 +74,11 @@ AMapOverlayActor* FGeoViewerEdMode::GetOverlayActor()
 		{
 			return nullptr;
 		}
+	}
+
+	if (OverlayActor->IsMissingConfig())
+	{
+		OverlayActor->SetConfig(UISettings);
 	}
 
 	return OverlayActor.Get();

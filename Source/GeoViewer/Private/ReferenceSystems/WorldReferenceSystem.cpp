@@ -24,7 +24,7 @@ AWorldReferenceSystem* AWorldReferenceSystem::GetWorldReferenceSystem(const UObj
 	return Actor;
 }
 
-void AWorldReferenceSystem::ProjectedToGeographicWithEPSG(const FCartesianCoordinates& ProjectedCoordinates,
+void AWorldReferenceSystem::ProjectedToGeographicWithEPSG(const FVector& ProjectedCoordinates,
 	FGeographicCoordinates& GeographicCoordinates, const uint16 ProjectedEPSG)
 {
 	AGeoViewerReferenceSystem* ReferenceSystem = GetReferenceSystem(ProjectedEPSG);
@@ -32,7 +32,7 @@ void AWorldReferenceSystem::ProjectedToGeographicWithEPSG(const FCartesianCoordi
 }
 
 void AWorldReferenceSystem::GeographicToProjectedWithEPSG(const FGeographicCoordinates& GeographicCoordinates,
-	FCartesianCoordinates& ProjectedCoordinates, const uint16 ProjectedEPSG)
+	FVector& ProjectedCoordinates, const uint16 ProjectedEPSG)
 {
 	AGeoViewerReferenceSystem* ReferenceSystem = GetReferenceSystem(ProjectedEPSG);
 	ReferenceSystem->GeographicToProjected(GeographicCoordinates, ProjectedCoordinates);
