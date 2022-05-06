@@ -4,6 +4,7 @@
 
 #include "GeoViewerEdModeToolkit.h"
 #include "EditorModeManager.h"
+#include "Toolkits/ToolkitManager.h"
 
 const FEditorModeID FGeoViewerEdMode::EM_GeoViewerEdModeId = TEXT("EM_GeoViewerEdMode");
 
@@ -38,6 +39,12 @@ void FGeoViewerEdMode::Enter()
 void FGeoViewerEdMode::Exit()
 {
 	UISettings->Save();
+
+	if (Toolkit.IsValid())
+	{
+		FToolkitManager::Get().CloseToolkit(Toolkit.ToSharedRef());
+		Toolkit.Reset();
+	}
 	
 	// Call base Exit method to ensure proper cleanup
 	FEdMode::Exit();
