@@ -36,15 +36,14 @@ public class GDAL : ModuleRules
 	private bool ProcessPrecomputedData(ReadOnlyTargetRules target, string stagingDir)
 	{
 		//Resolve the paths to the files and directories that will exist if we have precomputed data for the target
-		string targetDir = Path.Combine(ModuleDirectory, "precomputed", this.TargetIdentifier(target));
-		string flagsFile = Path.Combine(targetDir, "flags.json");
-		string includeDir = Path.Combine(targetDir, "include");
-		string libDir = Path.Combine(targetDir, "lib");
-		string binDir = Path.Combine(targetDir, "bin");
-		string dataDir = Path.Combine(targetDir, "data");
+		var targetDir = Path.Combine(ModuleDirectory, "precomputed", this.TargetIdentifier(target));
+		var includeDir = Path.Combine(targetDir, "include");
+		var libDir = Path.Combine(targetDir, "lib");
+		var binDir = Path.Combine(targetDir, "bin");
+		var dataDir = Path.Combine(targetDir, "data");
 		
 		//If any of the required files or directories do not exist then we do not have precomputed data
-		if (!File.Exists(flagsFile) || !Directory.Exists(includeDir) || !Directory.Exists(libDir) || !Directory.Exists(binDir) || !Directory.Exists(dataDir)) {
+		if (!Directory.Exists(includeDir) || !Directory.Exists(libDir) || !Directory.Exists(binDir) || !Directory.Exists(dataDir)) {
 			return false;
 		}
 		
@@ -52,32 +51,32 @@ public class GDAL : ModuleRules
 		PublicIncludePaths.Add(includeDir);
 		
 		//Link against all static library files (and import libraries for DLLs under Windows) in the lib directory
-		string libExtension = ((this.IsWindows(target)) ? ".lib" : ".a");
-		string[] libs = Directory.GetFiles(libDir, "*" + libExtension);
-		foreach(string lib in libs) {
+		var libExtension = ((this.IsWindows(target)) ? ".lib" : ".a");
+		var libs = Directory.GetFiles(libDir, "*" + libExtension);
+		foreach(var lib in libs) {
 			PublicAdditionalLibraries.Add(lib);
 		}
 		
 		//Under non-Windows platforms, link against all shared library files in the lib directory
 		if (this.IsWindows(target) == false)
 		{
-			List<string> sharedLibs = new List<string>();
+			var sharedLibs = new List<string>();
 			sharedLibs.AddRange(Directory.GetFiles(libDir, "*.dylib"));
 			sharedLibs.AddRange(Directory.GetFiles(libDir, "*.so"));
-			foreach(string lib in sharedLibs) {
+			foreach(var lib in sharedLibs) {
 				PublicAdditionalLibraries.Add(lib);
 			}
 		}
 		
 		//Ensure any shared libraries are staged alongside the binaries for the plugin
-		string[] searchDirs = new string[]{ binDir, libDir };
-		foreach (string dir in searchDirs)
+		var searchDirs = new string[]{ binDir, libDir };
+		foreach (var dir in searchDirs)
 		{
-			List<string> binaries = new List<string>();
+			var binaries = new List<string>();
 			binaries.AddRange(Directory.GetFiles(dir, "*.dll"));
 			binaries.AddRange(Directory.GetFiles(dir, "*.dylib"));
 			binaries.AddRange(Directory.GetFiles(dir, "*.so"));
-			foreach (string binary in binaries) {
+			foreach (var binary in binaries) {
 				RuntimeDependencies.Add(Path.Combine("$(BinaryOutputDir)", Path.GetFileName(binary)), binary, StagedFileType.NonUFS);
 			}
 		}
@@ -92,8 +91,8 @@ public class GDAL : ModuleRules
 		);
 		
 		//Copy any data files needed by the package into our staging directory
-		string[] files = Directory.GetFiles(dataDir, "*", SearchOption.AllDirectories);
-		foreach(string file in files) {
+		var files = Directory.GetFiles(dataDir, "*", SearchOption.AllDirectories);
+		foreach(var file in files) {
 			RuntimeDependencies.Add(Path.Combine(stagingDir, Path.GetFileName(file)), file, StagedFileType.NonUFS);
 		}
 		
