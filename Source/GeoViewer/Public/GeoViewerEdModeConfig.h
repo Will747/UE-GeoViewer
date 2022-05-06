@@ -105,10 +105,10 @@ public:
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Overlay")
 	EOverlayMapSystem OverlaySystem;
 	
-	UPROPERTY(EditAnywhere, NonTransactional, Category = "API Config", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Bing API Config", meta = (ShowOnlyInnerProperties))
 	FBingMapsOverlayConfig BingMaps;
 
-	UPROPERTY(EditAnywhere, NonTransactional, Category = "API Config", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Google API Config", meta = (ShowOnlyInnerProperties))
 	FGoogleMapsOverlayConfig GoogleMaps;
 
 	/** Loads and Saves config to ini file */
