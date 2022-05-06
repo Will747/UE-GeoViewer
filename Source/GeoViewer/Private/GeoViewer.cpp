@@ -19,8 +19,12 @@ void FGeoViewerModule::StartupModule()
 		FSlateIcon(FGeoViewerStyle::GetStyleSetName(), "GeoViewer.Icon", "GeoViewer.Icon.Small"),
 		true
 		);
-
-	//Initialize GDAL
+	
+	// Initialize GDAL
+	FString GDALDataPath =
+		FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("Binaries"), TEXT("Data"), TEXT("GDAL")));
+	CPLSetConfigOption("GDAL_DATA", TCHAR_TO_UTF8(*GDALDataPath));
+	
 	GDALAllRegister();
 }
 
