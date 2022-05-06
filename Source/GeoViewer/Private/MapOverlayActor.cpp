@@ -61,35 +61,32 @@ void AMapOverlayActor::Tick(float DeltaTime)
 
 	if (bOverlayActive)
 	{
-		if (const UWorld* World = GetWorld())
+		const FViewportCursorLocation Cursor = GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
+		const FVector UserPosition = Cursor.GetOrigin();
+		
+		// Calculate the tile position/index between the origin and user
+		const int TileSize = EdModeConfig->TileSize;
+		const int X = UserPosition.X / TileSize;
+		const int Y = UserPosition.Y / TileSize;
+		
+		// Form a string and check that tile doesn't already exist
+		const FString Key =  FString::FromInt(X) + "," + FString::FromInt(Y);
+		if (!Tiles.Contains(Key))
 		{
-			const FViewportCursorLocation Cursor = GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
-			const FVector UserPosition = Cursor.GetOrigin();
-			
-			// Calculate the tile position/index between the origin and user
-			const int TileSize = EdModeConfig->TileSize;
-			const int X = UserPosition.X / TileSize;
-			const int Y = UserPosition.Y / TileSize;
+			// Calculate UE coordinates for corner positions of the tile
+			const float HalfTileSize = TileSize / 2;
+			const FVector Center = FVector(X * TileSize, Y * TileSize, 0);
+			const FVector Corner1 = FVector(HalfTileSize, HalfTileSize, 0) + Center;
+			const FVector Corner2 = FVector(-HalfTileSize, -HalfTileSize, 0) + Center;
 
-			// Form a string and check that tile doesn't already exist
-			const FString Key =  FString::FromInt(X) + "," + FString::FromInt(Y);
-			if (!Tiles.Contains(Key))
+			// Make sure all the components aren't still loading before adding another tile
+			const UOverlayTileComponent* NextTileComponent = GetNextComponent();
+			if ((NextTileComponent && !NextTileComponent->IsLoadingTile()) || NextTileComponent == nullptr)
 			{
-				// Calculate UE coordinates for corner positions of the tile
-				const float HalfTileSize = TileSize / 2;
-				const FVector Center = FVector(X * TileSize, Y * TileSize, 0);
-				const FVector Corner1 = FVector(HalfTileSize, HalfTileSize, 0) + Center;
-				const FVector Corner2 = FVector(-HalfTileSize, -HalfTileSize, 0) + Center;
-
-				// Make sure all the components aren't still loading before adding another tile
-				const UOverlayTileComponent* NextTileComponent = GetNextComponent();
-				if ((NextTileComponent && !NextTileComponent->IsLoadingTile()) || NextTileComponent == nullptr)
-				{
-					LoadNewTile(
-					Corner1,
-					Corner2,
-					Key);
-				}
+				LoadNewTile(
+				Corner1,
+				Corner2,
+				Key);
 			}
 		}
 	}
