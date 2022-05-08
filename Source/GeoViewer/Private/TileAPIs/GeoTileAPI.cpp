@@ -3,12 +3,10 @@
 
 FGeoTileAPI::FGeoTileAPI(
 	TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-	AWorldReferenceSystem* ReferencingSystem,
-	FGeoBounds TileBounds
+	AWorldReferenceSystem* ReferencingSystem
 	)
 {
 	EdModeConfigPtr = InEdModeConfig;
-	Bounds = TileBounds;
 	TileReferenceSystem = ReferencingSystem;
 }
 

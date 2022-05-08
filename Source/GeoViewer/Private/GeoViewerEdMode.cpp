@@ -12,6 +12,8 @@ FGeoViewerEdMode::FGeoViewerEdMode()
 {
 	UISettings = NewObject<UGeoViewerEdModeConfig>(GetTransientPackage());
 	UISettings->ParentMode = this;
+
+	LandscapeImporter = MakeUnique<FLandscapeImporter>();
 }
 
 FGeoViewerEdMode::~FGeoViewerEdMode()
@@ -34,6 +36,8 @@ void FGeoViewerEdMode::Enter()
 	{
 		CurrentMapOverlayActor->SetConfig(UISettings);
 	}
+
+	LandscapeImporter->Initialize(GetWorld(), UISettings);
 }
 
 void FGeoViewerEdMode::Exit()
@@ -58,6 +62,11 @@ void FGeoViewerEdMode::AddReferencedObjects(FReferenceCollector& Collector)
 bool FGeoViewerEdMode::UsesToolkits() const
 {
 	return true;
+}
+
+void FGeoViewerEdMode::LoadTerrainAroundUser()
+{
+	LandscapeImporter->LoadTile(FGeoBounds());
 }
 
 void FGeoViewerEdMode::ResetOverlay()
@@ -90,7 +99,3 @@ AMapOverlayActor* FGeoViewerEdMode::GetOverlayActor()
 
 	return OverlayActor.Get();
 }
-
-
-
-

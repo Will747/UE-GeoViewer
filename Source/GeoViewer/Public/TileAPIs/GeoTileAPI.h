@@ -22,14 +22,13 @@ public:
 
 	FGeoTileAPI(
 		TWeakObjectPtr<class UGeoViewerEdModeConfig> InEdModeConfig,
-		AWorldReferenceSystem* ReferencingSystem,
-		FGeoBounds TileBounds
+		AWorldReferenceSystem* ReferencingSystem
 		);
 	
 	virtual ~FGeoTileAPI();
 
 	/** Called when tiles should begin to be loaded. */
-	virtual void LoadTile() = 0;
+	virtual void LoadTile(FGeoBounds TileBounds) = 0;
 
 	/** Returns the path to the folder containing cached images */
 	static FString GetCacheFolderPath();
@@ -57,7 +56,4 @@ protected:
 
 	/** Contains API keys and details for the overlay */
 	TWeakObjectPtr<UGeoViewerEdModeConfig> EdModeConfigPtr;
-
-	/** The geographical area the tile needs to cover. */
-	FGeoBounds Bounds;
 };

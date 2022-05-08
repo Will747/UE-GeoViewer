@@ -77,6 +77,12 @@ enum class EOverlayMapSystem : uint8
 	BingMaps
 };
 
+UENUM()
+enum class ELandscapeFormat : uint8
+{
+	STRM UMETA(DisplayName = "STRM HGT Format")
+};
+
 /**
  * The config shown on the editor mode panel
  */
@@ -111,6 +117,9 @@ public:
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Google API Config", meta = (ShowOnlyInnerProperties))
 	FGoogleMapsOverlayConfig GoogleMaps;
 
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape")
+	ELandscapeFormat LandscapeFormat;
+	
 	/** Loads and Saves config to ini file */
 	void Load();
 	void Save();

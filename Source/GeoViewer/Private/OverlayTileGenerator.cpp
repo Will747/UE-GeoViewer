@@ -21,14 +21,14 @@ void FOverlayTileGenerator::GenerateTile(AMapOverlayActor* InParentActor,
 	
 	if (InEdModeConfig->OverlaySystem == EOverlayMapSystem::BingMaps)
 	{
-		TileLoader = MakeShared<FBingMapsAPI>(InEdModeConfig, ReferencingSystem, TileBounds);
+		TileLoader = MakeShared<FBingMapsAPI>(InEdModeConfig, ReferencingSystem);
 	} else
 	{
-		TileLoader = MakeShared<FGoogleMapsAPI>(InEdModeConfig, ReferencingSystem, TileBounds);	
+		TileLoader = MakeShared<FGoogleMapsAPI>(InEdModeConfig, ReferencingSystem);	
 	}
 	
 	TileLoader->OnComplete.BindRaw(this, &FOverlayTileGenerator::OnTileFinishedLoading);
-	TileLoader->LoadTile();
+	TileLoader->LoadTile(TileBounds);
 }
 
 void FOverlayTileGenerator::OnTileFinishedLoading(GDALDataset* Dataset) const

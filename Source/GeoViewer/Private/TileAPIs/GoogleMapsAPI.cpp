@@ -1,8 +1,8 @@
 ﻿#include "TileAPIs/GoogleMapsAPI.h"
 
 FGoogleMapsAPI::FGoogleMapsAPI(TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-	AWorldReferenceSystem* ReferencingSystem, FGeoBounds TileBounds):
-	FWebMapTileAPI(InEdModeConfig, ReferencingSystem, TileBounds)
+	AWorldReferenceSystem* ReferencingSystem):
+	FWebMapTileAPI(InEdModeConfig, ReferencingSystem)
 {
 	if (EdModeConfigPtr.IsValid())
 	{

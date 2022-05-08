@@ -1,23 +1,23 @@
 ﻿#include "TileAPIs/WebTileMapAPI.h"
 #include "GDALWarp.h"
 
-FWebMapTileAPI::FWebMapTileAPI(TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-                               AWorldReferenceSystem* ReferencingSystem, FGeoBounds TileBounds) :
-	FGeoTileAPI(InEdModeConfig, ReferencingSystem, TileBounds), ZoomLevel(0), TileResolution(0)
+FWebMapTileAPI::FWebMapTileAPI(const TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
+                               AWorldReferenceSystem* ReferencingSystem) :
+	FGeoTileAPI(InEdModeConfig, ReferencingSystem), ZoomLevel(0), TileResolution(0)
 {
 	SegmentNum = -1;
 }
 
-void FWebMapTileAPI::LoadTile()
+void FWebMapTileAPI::LoadTile(const FGeoBounds TileBounds)
 {
 	if (TileReferenceSystem)
 	{
 		//Get the bounds in projected coordinates
 		FVector TopCornerProj;
-		TileReferenceSystem->GeographicToProjectedWithEPSG(Bounds.TopLeft, TopCornerProj, EPSG);
+		TileReferenceSystem->GeographicToProjectedWithEPSG(TileBounds.TopLeft, TopCornerProj, EPSG);
 
 		FVector BottomCornerProj;
-		TileReferenceSystem->GeographicToProjectedWithEPSG(Bounds.BottomRight, BottomCornerProj, EPSG);
+		TileReferenceSystem->GeographicToProjectedWithEPSG(TileBounds.BottomRight, BottomCornerProj, EPSG);
 
 		if (TopCornerProj.Y <= BottomCornerProj.Y)
 		{

@@ -9,8 +9,7 @@ class FGoogleMapsAPI : public FWebMapTileAPI
 public:
 	FGoogleMapsAPI(
 		TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-		AWorldReferenceSystem* ReferencingSystem,
-		FGeoBounds TileBounds
+		AWorldReferenceSystem* ReferencingSystem
 		);
 
 protected:

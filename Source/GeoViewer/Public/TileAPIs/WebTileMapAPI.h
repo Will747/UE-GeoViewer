@@ -11,11 +11,10 @@ class FWebMapTileAPI : public FGeoTileAPI
 public:
 	FWebMapTileAPI(
 		TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-		AWorldReferenceSystem* ReferencingSystem,
-		FGeoBounds TileBounds
+		AWorldReferenceSystem* ReferencingSystem
 		);
 	
-	virtual void LoadTile() override;
+	virtual void LoadTile(FGeoBounds TileBounds) override;
 
 protected:
 	/** 

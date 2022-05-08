@@ -9,8 +9,7 @@ class FBingMapsAPI : public FWebMapTileAPI
 public:
 	FBingMapsAPI(
 		TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-		AWorldReferenceSystem* ReferencingSystem,
-		FGeoBounds TileBounds
+		AWorldReferenceSystem* ReferencingSystem
 		);
 
 protected:

@@ -1,8 +1,8 @@
 ﻿#include "TileAPIs/BingMapsAPI.h"
 
 FBingMapsAPI::FBingMapsAPI(TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-                           AWorldReferenceSystem* ReferencingSystem, FGeoBounds TileBounds):
-	FWebMapTileAPI(InEdModeConfig, ReferencingSystem, TileBounds)
+                           AWorldReferenceSystem* ReferencingSystem):
+	FWebMapTileAPI(InEdModeConfig, ReferencingSystem)
 {
 	if (EdModeConfigPtr.IsValid())
 	{

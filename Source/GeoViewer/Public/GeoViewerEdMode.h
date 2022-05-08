@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "EdMode.h"
 #include "GeoViewerEdModeConfig.h"
+#include "LandscapeImporter.h"
 #include "MapOverlayActor.h"
 
 /**
@@ -26,6 +27,8 @@ public:
 	virtual bool UsesToolkits() const override;
 	// End of FEdMode interface
 
+	void LoadTerrainAroundUser();
+
 	/** Resets the overlay when a change has been made to the config */
 	void ResetOverlay();
 	
@@ -34,4 +37,5 @@ public:
 
 private:
 	TWeakObjectPtr<AMapOverlayActor> OverlayActor;
+	TUniquePtr<FLandscapeImporter> LandscapeImporter;
 };
