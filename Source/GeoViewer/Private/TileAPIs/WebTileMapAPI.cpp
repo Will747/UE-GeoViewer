@@ -8,76 +8,62 @@ FWebMapTileAPI::FWebMapTileAPI(const TWeakObjectPtr<UGeoViewerEdModeConfig> InEd
 	SegmentNum = -1;
 }
 
-void FWebMapTileAPI::LoadTile(const FGeoBounds TileBounds)
+void FWebMapTileAPI::LoadTile(const FProjectedBounds InTileBounds)
 {
+	TileBounds = InTileBounds;
+	
 	if (TileReferenceSystem)
 	{
-		//Get the bounds in projected coordinates
-		FVector TopCornerProj;
-		TileReferenceSystem->GeographicToProjectedWithEPSG(TileBounds.TopLeft, TopCornerProj, EPSG);
-
-		FVector BottomCornerProj;
-		TileReferenceSystem->GeographicToProjectedWithEPSG(TileBounds.BottomRight, BottomCornerProj, EPSG);
-
-		if (TopCornerProj.Y <= BottomCornerProj.Y)
-		{
-			const double TempY = TopCornerProj.Y;
-			TopCornerProj.Y = BottomCornerProj.Y;
-			BottomCornerProj.Y = TempY;
-		}
-
-		if (TopCornerProj.X >= BottomCornerProj.X)
-		{
-			const double TempX = TopCornerProj.X;
-			TopCornerProj.X = BottomCornerProj.X;
-			BottomCornerProj.X = TempX;
-		}
+		//Get the bounds in projected coordinates used by the data source
+		auto [TopLeft, BottomRight] = CalculateProjectedBounds();
 		
 		//Download all segments needed till the 'CurrentPosition' is beyond the bottom corner
-		FVector CurrentPosition = TopCornerProj;
+		FVector CurrentPosition = TopLeft;
 		
 		FVector2D PositionIndex = FVector2D(0, 0); //Position of a segment in relation to the other segments.
-		while (CurrentPosition.Y > BottomCornerProj.Y)
+		while (CurrentPosition.Y > BottomRight.Y)
 		{
 			PositionIndex.X = 0;
-			FCartesianCoordinates ProjectedSegmentSize;
-			while (CurrentPosition.X < BottomCornerProj.X)
+			FVector ProjectedSegmentSize;
+			while (CurrentPosition.X < BottomRight.X)
 			{
-				FGeographicCoordinates SegmentCenter;
-				TileReferenceSystem->ProjectedToGeographicWithEPSG(CurrentPosition, SegmentCenter, EPSG);
-
-				//Calculate top corner position of tile
-				const float HalfTileSize = CalculateTileSize(SegmentCenter.Latitude) / 2;
-				
+				// Get the corner position for the next segment in geographic coordinates
 				FGeographicCoordinates SegmentTopCornerGeo;
-				AGeoViewerReferenceSystem::GetGeographicalCoordinatesAtOffset(
-					SegmentCenter,
-					FVector2D(-HalfTileSize, HalfTileSize),
-					SegmentTopCornerGeo
-					);
-				
-				FVector SegmentTopCornerProj;
-				TileReferenceSystem->GeographicToProjectedWithEPSG(SegmentTopCornerGeo, SegmentTopCornerProj, EPSG);
+				TileReferenceSystem->ProjectedToGeographicWithEPSG(CurrentPosition, SegmentTopCornerGeo, EPSG);
 
-				// height in meters of the tile / number of vertical pixels
-				//const double PixelSize =  TileSize / EdModeConfigPtr.Get()->TileSize;
-				ProjectedSegmentSize.X = FMath::Abs(CurrentPosition.X - SegmentTopCornerProj.X) * 2;
-				ProjectedSegmentSize.Y = FMath::Abs(CurrentPosition.Y - SegmentTopCornerProj.Y) * 2;
+				// Calculate side lenght of the segment
+				const float HalfTileSize = CalculateTileSize(SegmentTopCornerGeo.Latitude) / 2;
+
+				// Get the center position of the tile in geographic coordinates
+				FGeographicCoordinates SegmentCenterGeo;
+				AGeoViewerReferenceSystem::GetGeographicalCoordinatesAtOffset(
+					SegmentTopCornerGeo,
+					FVector2D(HalfTileSize, -HalfTileSize),
+					SegmentCenterGeo
+					);
+
+				// Convert geographic top corner to projected coordinates
+				FVector SegmentCenterProj;
+				TileReferenceSystem->GeographicToProjectedWithEPSG(SegmentCenterGeo, SegmentCenterProj, EPSG);
+
+				// Calculate segment size in the projected CRS units
+				ProjectedSegmentSize.X = FMath::Abs(CurrentPosition.X - SegmentCenterProj.X) * 2;
+				ProjectedSegmentSize.Y = FMath::Abs(CurrentPosition.Y - SegmentCenterProj.Y) * 2;
 
 				FVector2D PixelSize;
 				PixelSize.X = ProjectedSegmentSize.X / TileResolution;
 				PixelSize.Y = ProjectedSegmentSize.Y / TileResolution;
 
 				//Get URL and filename
-				const FString URL = GetTileURL(SegmentCenter);
-				const FString FileName = GetFileName(SegmentCenter);
+				const FString URL = GetTileURL(SegmentCenterGeo);
+				const FString FileName = GetFileName(SegmentCenterGeo);
 
-				FString CacheFolder = GetCacheFolderPath();
-				const bool bTileExists = FPaths::FileExists(CacheFolder + FileName + ".tif");
+				const FString CacheFolder = GetCacheFolderPath();
+				const FString FilePath = CacheFolder + FileName + ".tif";
 
-				if (bTileExists)
+				if (FPaths::FileExists(FilePath))
 				{
-					GDALDataset* Dataset = (GDALDataset*)GDALOpen( TCHAR_TO_UTF8(*(CacheFolder + FileName + ".tif")), GA_ReadOnly);
+					GDALDataset* Dataset = (GDALDataset*)GDALOpen(TCHAR_TO_UTF8(*(FilePath)), GA_ReadOnly);
 					DatasetsToMerge.Add(Dataset);
 				} else
 				{
@@ -87,7 +73,7 @@ void FWebMapTileAPI::LoadTile(const FGeoBounds TileBounds)
 					SegmentsDownloaders.Add(Segment);
 				
 					//Update the dataset with new bounds
-					Segment->SetMetaData(SegmentTopCornerProj, PixelSize, 3857);
+					Segment->SetMetaData(CurrentPosition, PixelSize, 3857);
 					Segment->BeginDownload(URL, FileName);
 				}
 				
@@ -98,7 +84,7 @@ void FWebMapTileAPI::LoadTile(const FGeoBounds TileBounds)
 			}
 			
 			//After each row reset X and increment Y
-			CurrentPosition.X = TopCornerProj.X;
+			CurrentPosition.X = TopLeft.X;
 			CurrentPosition.Y -= ProjectedSegmentSize.Y;
 			
 			PositionIndex.Y++;
@@ -120,11 +106,20 @@ void FWebMapTileAPI::CheckComplete()
 		
 		// At this point all segments have been downloaded so the final dataset can be created.
 		const int MergedDatasetIdx = CachedDatasets.Add(GDALDatasetRef(MergeDatasets()));
+		GDALDataset* WarpedDataset = WarpDataset(MergedDatasetIdx);
+		CachedDatasets.Add(GDALDatasetRef(WarpedDataset));
+
+		// Crop the dataset down the the correct bounds.
+		FString CroppedDatasetPath;
+		GDALDataset* CroppedDataset = FGDALWarp::CropDataset(
+			WarpedDataset,
+			TileBounds.TopLeft,
+			TileBounds.BottomRight,
+			CroppedDatasetPath
+			).Release();
+		CachedDatasetPaths.Add(CroppedDatasetPath);
 		
-		const FString CurrentCRS = AGeoViewerReferenceSystem::EPSGToString(EPSG);
-		const FString FinalCRS = TileReferenceSystem->ProjectedCRS;
-		GDALDatasetRef WarpedDataset = FGDALWarp::WarpDataset(CachedDatasets[MergedDatasetIdx], CurrentCRS, FinalCRS);
-		TriggerOnCompleted(WarpedDataset.Release());
+		TriggerOnCompleted(CroppedDataset);
 	}
 }
 

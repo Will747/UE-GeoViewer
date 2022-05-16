@@ -5,6 +5,7 @@
 #include "GeoViewer.h"
 #include "LevelEditorViewport.h"
 #include "OverlayTileGenerator.h"
+#include "Components/ArrowComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "ReferenceSystems/WorldReferenceSystem.h"
 #include "TileAPIs/BingMapsAPI.h"
@@ -203,10 +204,10 @@ void AMapOverlayActor::AddOverlayTile(GDALDataset* Dataset, FString Key)
 TSharedRef<FOverlayTileGenerator> AMapOverlayActor::LoadNewTile(const FVector Corner1, const FVector Corner2, FString Key)
 {
 	//Convert engine coordinates to geographic coordinates
-	FGeoBounds NewTileBounds;
+	FProjectedBounds NewTileBounds;
 	AWorldReferenceSystem* WorldReferenceSystem = GetWorldReferenceSystem();
-	WorldReferenceSystem->EngineToGeographic(Corner1, NewTileBounds.TopLeft);
-	WorldReferenceSystem->EngineToGeographic(Corner2, NewTileBounds.BottomRight);
+	WorldReferenceSystem->EngineToProjected(Corner1, NewTileBounds.TopLeft);
+	WorldReferenceSystem->EngineToProjected(Corner2, NewTileBounds.BottomRight);
 	
 	//Request Tile
 	TSharedRef<FOverlayTileGenerator> Tile = MakeShareable(new FOverlayTileGenerator());

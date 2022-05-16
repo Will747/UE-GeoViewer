@@ -7,9 +7,32 @@ GDALDatasetRef FGDALWarp::WarpDataset(GDALDatasetRef& Dataset, FString CurrentCR
 	const FString DstWKT = ConvertToWKT(FinalCRS);
 
 	GDALDataset* DstDataset = (GDALDataset*) GDALAutoCreateWarpedVRT(
-		Dataset.Get(),  TCHAR_TO_UTF8(*SrcWKT), TCHAR_TO_UTF8(*DstWKT), GRA_Lanczos, 1, NULL);
+		Dataset.Get(),
+		TCHAR_TO_UTF8(*SrcWKT),
+		TCHAR_TO_UTF8(*DstWKT),
+		GRA_Lanczos,
+		1,
+		NULL
+		);
 
 	return GDALDatasetRef(DstDataset);
+}
+
+GDALDatasetRef FGDALWarp::CropDataset(
+	GDALDataset* SrcDataset,
+	const FVector TopLeft,
+	const FVector BottomRight,
+	FString& OutFileName
+	)
+{
+	TArray<FString> TranslateParameters;
+	TranslateParameters.Add("-projwin");
+	TranslateParameters.Add(FString::SanitizeFloat(BottomRight.X));
+	TranslateParameters.Add(FString::SanitizeFloat(BottomRight.Y));
+	TranslateParameters.Add(FString::SanitizeFloat(TopLeft.X));
+	TranslateParameters.Add(FString::SanitizeFloat(TopLeft.Y));
+	
+	return TranslateDataset(SrcDataset, TranslateParameters, OutFileName);
 }
 
 FString FGDALWarp::ConvertToWKT(FString CRS)
@@ -131,4 +154,28 @@ FString FGDALWarp::ConvertToWKT(const uint16 EPSGInt)
 	SpatialReference.exportToWkt(&Wkt);
 	
 	return ConvertToFString(Wkt);
+}
+
+GDALDatasetRef FGDALWarp::TranslateDataset(
+	GDALDataset* Dataset,
+	TArray<FString>& Parameters,
+	FString& OutFileName
+	)
+{
+	mergetiff::ArgsArray ParametersChar;
+	for (FString Parameter : Parameters)
+	{
+		ParametersChar.add(TCHAR_TO_UTF8(*Parameter));
+	}
+	
+	GDALTranslateOptions* Options = GDALTranslateOptionsNew(ParametersChar.get(), nullptr);
+
+	const FGuid DatasetGuid = FGuid::NewGuid();
+	OutFileName = "/vsimem/" + DatasetGuid.ToString() + ".vrt";
+	
+	GDALDataset* TranslatedDataset =
+		(GDALDataset*)GDALTranslate(TCHAR_TO_UTF8(*OutFileName), Dataset, Options, NULL);
+	GDALTranslateOptionsFree(Options);
+
+	return GDALDatasetRef(TranslatedDataset);
 }

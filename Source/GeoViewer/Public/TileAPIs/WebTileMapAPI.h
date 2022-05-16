@@ -14,7 +14,7 @@ public:
 		AWorldReferenceSystem* ReferencingSystem
 		);
 	
-	virtual void LoadTile(FGeoBounds TileBounds) override;
+	virtual void LoadTile(FProjectedBounds TileBounds) override;
 
 protected:
 	/** 
@@ -61,10 +61,7 @@ private:
 	
 	/** Reference to the object downloading the tile to prevent garbage collection */
 	TArray<TSharedRef<FTileDownloader>> SegmentsDownloaders;
-
+	
 	/** Required number of segments to form the tile */
 	int SegmentNum;
-
-	/** CRS used by Bing and Google */
-	const uint16 EPSG = 3857;
 };

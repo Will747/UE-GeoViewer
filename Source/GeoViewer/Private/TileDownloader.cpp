@@ -115,10 +115,10 @@ void FTileDownloader::DownloadFinished(FHttpRequestPtr HttpRequest, FHttpRespons
 	if (mergetiff::RasterIO::writeDataset(DownloadedDataset, RasterData))
 	{
 		// Close the asset to ensure it's saved then reopen it in read only mode
-		GDALDataset* OldDataset = DownloadedDataset.Release();
-		GDALClose(OldDataset);
+		//GDALDataset* OldDataset = DownloadedDataset.Release();
+		//GDALClose(OldDataset);
 
-		FinalDataset = (GDALDataset*)GDALOpenShared(TCHAR_TO_UTF8(*FilePath), GA_ReadOnly);
+		FinalDataset = DownloadedDataset.Release();
 		OnDownloaded.Execute(this);
 	}
 }

@@ -4,6 +4,7 @@
 
 #include "GeoViewerEdModeToolkit.h"
 #include "EditorModeManager.h"
+#include "LevelEditorViewport.h"
 #include "Toolkits/ToolkitManager.h"
 
 const FEditorModeID FGeoViewerEdMode::EM_GeoViewerEdModeId = TEXT("EM_GeoViewerEdMode");
@@ -66,7 +67,12 @@ bool FGeoViewerEdMode::UsesToolkits() const
 
 void FGeoViewerEdMode::LoadTerrainAroundUser()
 {
-	LandscapeImporter->LoadTile(FGeoBounds());
+	// Find the world position of the viewport
+	const FViewportCursorLocation ViewportCursor =
+		GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
+	const FVector UserPosition = ViewportCursor.GetOrigin();
+	
+	LandscapeImporter->LoadTile(UserPosition);
 }
 
 void FGeoViewerEdMode::ResetOverlay()

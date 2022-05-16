@@ -15,7 +15,7 @@ FOverlayTileGenerator::~FOverlayTileGenerator()
 void FOverlayTileGenerator::GenerateTile(AMapOverlayActor* InParentActor,
                                          TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
                                          AWorldReferenceSystem* ReferencingSystem,
-                                         FGeoBounds TileBounds)
+                                         FProjectedBounds TileBounds)
 {
 	ParentActor = InParentActor;
 	

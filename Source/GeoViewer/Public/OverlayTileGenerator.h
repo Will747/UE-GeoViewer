@@ -22,7 +22,7 @@ public:
 		AMapOverlayActor* InParentActor,
 		TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
 		AWorldReferenceSystem* ReferencingSystem,
-		FGeoBounds TileBounds
+		FProjectedBounds TileBounds
 		);
 
 	/** Used to identify the tile being loaded */

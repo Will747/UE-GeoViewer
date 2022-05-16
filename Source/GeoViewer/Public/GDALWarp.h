@@ -17,7 +17,22 @@ public:
 	 * @return Dataset reprojected to the new CRS.
 	 */
 	static GDALDatasetRef WarpDataset(GDALDatasetRef& Dataset, FString CurrentCRS, FString FinalCRS);
- 
+
+	/**
+	 * Crops a dataset down to the provided bounds.
+	 * @param SrcDataset Dataset that needs cropping.
+	 * @param TopLeft Position to crop top corner to in the projected CRS used by the dataset.
+	 * @param BottomRight Position to crop bottom corner to in the projected CRS used by the dataset.
+	 * @param OutFileName Path to the cropped dataset that gets created.
+	 * @return Cropped dataset.
+	 */
+	static GDALDatasetRef CropDataset(
+		GDALDataset* SrcDataset,
+		FVector TopLeft,
+		FVector BottomRight,
+		FString& OutFileName
+		);
+	
 	/**
 	 * Creates a new dataset containing raster bands created from the RawData parameter.
 	 * @param RawData Raw image data to add to the dataset.
@@ -68,6 +83,18 @@ private:
 	/** Converts to a WKT if in a valid EPSG code */
 	static FString ConvertToWKT(FString CRS);
 	static FString ConvertToWKT(uint16 EPSGInt);
+
+	/**
+	 * Runs the GDALTranslate function.
+	 * @param Dataset Source dataset.
+	 * @param Parameters Translate parameters.
+	 * @param OutFileName Random filename of translated dataset saved in memory.
+	 */
+	static GDALDatasetRef TranslateDataset(
+		GDALDataset* Dataset,
+		TArray<FString>& Parameters,
+		FString& OutFileName
+		);
 
 	static FString ConvertToFString(char* Text);
 };
