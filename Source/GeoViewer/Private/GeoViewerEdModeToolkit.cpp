@@ -43,12 +43,12 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 	SAssignNew(ToolkitWidget, SBorder)
 		[
 			SNew(SVerticalBox)
-			+ SVerticalBox::Slot() // Overlay activate button
+			+ SVerticalBox::Slot() // Buttons
 			.AutoHeight()
 			.HAlign(HAlign_Center)
 			[
 				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
+				+ SHorizontalBox::Slot() // Overlay activate button
 				.AutoWidth()
 				[
 					SNew(SButton)
@@ -56,6 +56,16 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 					[
 						SNew(STextBlock)
 						.Text(this, &FGeoViewerEdModeToolkit::GetOverlayButtonText)
+					]
+				]
+				+ SHorizontalBox::Slot() // Load terrain button
+				.AutoWidth()
+				[
+					SNew(SButton)
+					.OnClicked(this, &FGeoViewerEdModeToolkit::OnLoadTerrainButtonPressed)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("GeoViewerLoadTerrainButton", "Load Terrain"))
 					]
 				]
 			]
@@ -132,6 +142,16 @@ AMapOverlayActor* FGeoViewerEdModeToolkit::GetOverlayActor() const
 	}
 
 	return nullptr;
+}
+
+FReply FGeoViewerEdModeToolkit::OnLoadTerrainButtonPressed()
+{
+	if (FGeoViewerEdMode* EdMode = GetEditorMode())
+	{
+		EdMode->LoadTerrainAroundUser();
+	}
+	
+	return FReply::Handled();
 }
 
 FGeoViewerEdMode* FGeoViewerEdModeToolkit::GetEditorMode() const

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EditorFramework/AssetImportData.h"
 #include "GeoViewerEdModeConfig.generated.h"
 
 UENUM()
@@ -119,6 +118,21 @@ public:
 
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape")
 	ELandscapeFormat LandscapeFormat;
+
+	/** Number of quads in a section. This can be: 7, 15, 31, 63, 127, 255 (63 = 63x63) */
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape", meta = (UIMin=7, UIMax=255))
+	int SectionSize = 63;
+	
+	/** Number of components per landscape proxy */
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape", meta = (UIMin=1, UIMax=1024))
+	int NumberOfComponents = 64;
+
+	/** Number of sections a component is split into. (2 = 4x4 sections) */
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape", meta = (UIMin=1, UIMax=2))
+	int SectionsPerComponent = 2;
+
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape")
+	UMaterialInterface* LandscapeMaterial;
 	
 	/** Loads and Saves config to ini file */
 	void Load();

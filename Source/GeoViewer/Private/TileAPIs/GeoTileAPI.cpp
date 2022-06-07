@@ -89,7 +89,7 @@ void FGeoTileAPI::EmptyDatasetsToMerge()
 	DatasetsToMerge.Empty();
 }
 
-FProjectedBounds FGeoTileAPI::CalculateProjectedBounds() const
+FProjectedBounds FGeoTileAPI::GetProjectedBounds() const
 {
 	// Calculate all four corners of the tile.
 	const double XMin = TileBounds.TopLeft.X;
@@ -105,7 +105,6 @@ FProjectedBounds FGeoTileAPI::CalculateProjectedBounds() const
 
 	// Convert corners to geographical coordinates then back into the projected CRS
 	// of the source data.
-
 	TArray<FGeographicCoordinates> GeoCorners;
 	for (FVector Corner : Corners)
 	{
@@ -158,4 +157,13 @@ FProjectedBounds FGeoTileAPI::CalculateProjectedBounds() const
 	IncreasedBounds.BottomRight = FVector(ProjXMax, ProjYMin, 0);
 
 	return IncreasedBounds;
+}
+
+FGeoBounds FGeoTileAPI::GetGeographicBounds() const
+{
+	FGeoBounds GeoBounds;
+	TileReferenceSystem->ProjectedToGeographic(TileBounds.TopLeft, GeoBounds.TopLeft);
+	TileReferenceSystem->ProjectedToGeographic(TileBounds.BottomRight, GeoBounds.BottomRight);
+
+	return GeoBounds;
 }

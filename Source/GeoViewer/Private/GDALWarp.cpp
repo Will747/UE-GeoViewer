@@ -35,6 +35,18 @@ GDALDatasetRef FGDALWarp::CropDataset(
 	return TranslateDataset(SrcDataset, TranslateParameters, OutFileName);
 }
 
+GDALDatasetRef FGDALWarp::ResizeDataset(GDALDataset* SrcDataset, const FIntVector2 Resolution, FString& OutFileName)
+{
+	TArray<FString> TranslateParameters;
+	TranslateParameters.Add("-outsize");
+	TranslateParameters.Add(FString::FromInt(Resolution.X));
+	TranslateParameters.Add(FString::FromInt(Resolution.Y));
+	TranslateParameters.Add("-r");
+	TranslateParameters.Add("cubicspline");
+	
+	return TranslateDataset(SrcDataset, TranslateParameters, OutFileName);
+}
+
 FString FGDALWarp::ConvertToWKT(FString CRS)
 {
 	// If the string is the correct length try and convert it
@@ -54,25 +66,6 @@ FString FGDALWarp::ConvertToFString(char* Text)
 {
 	const CPLStringRef TextRef(Text);
 	return UTF8_TO_TCHAR(TextRef.Get());
-}
-
-GDALDatasetRef FGDALWarp::CreateDataset(TArray<uint8>& RawData, const int XSize, const int YSize, const ERGBFormat Format)
-{
-	int ChannelNum = 4;
-	if (Format == ERGBFormat::Gray)
-	{
-		ChannelNum = 1;
-	}
-	
-	const mergetiff::RasterData<uint8> RasterData(
-		RawData.GetData(),
-		ChannelNum,
-		YSize,
-		XSize,
-		true
-		);
-	
-	return mergetiff::DatasetManagement::datasetFromRaster(RasterData);
 }
 
 void FGDALWarp::SetDatasetMetaData(GDALDatasetRef& Dataset, FVector TopCorner, const FVector2D PixelSize,
@@ -135,14 +128,6 @@ UTexture2D* FGDALWarp::CreateTexture2D(UObject* Outer, TArray<uint8>& RawImage, 
 	 }
 	
 	return Texture;
-}
-
-void FGDALWarp::GetRawImage(GDALDatasetRef& Dataset, TArray<uint8>& OutImage, int XSize, int YSize, int Channels)
-{
-	constexpr uint8 Element = uint8();
-	OutImage.Init(Element, XSize * YSize * Channels);
-	mergetiff::RasterData RasterData(OutImage.GetData(), Channels, YSize, XSize, true);
-	mergetiff::RasterIO::readDataset<uint8>(Dataset, RasterData);
 }
 
 FString FGDALWarp::ConvertToWKT(const uint16 EPSGInt)

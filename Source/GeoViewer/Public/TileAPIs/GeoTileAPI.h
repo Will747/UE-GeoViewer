@@ -46,6 +46,10 @@ protected:
 	/** Calls the on complete delegate for when the dataset has been loaded */
 	void TriggerOnCompleted(GDALDataset* Dataset) const;
 
+	/**
+	 * Warps a dataset to the CRS used by the world.
+	 * @param CachedDatasetIdx Index of dataset in 'CachedDatasets' array.
+	 */
 	GDALDataset* WarpDataset(int CachedDatasetIdx);
 	
 	/** Merges all datasets into one */
@@ -60,7 +64,10 @@ protected:
 	 * the coordinates returned will be bigger to ensure there isn't
 	 * any data missing from the corners of the requested tile.
 	 */
-	FProjectedBounds CalculateProjectedBounds() const;
+	FProjectedBounds GetProjectedBounds() const;
+
+	/** Returns the tile bounds in geographic coordinates. */
+	FGeoBounds GetGeographicBounds() const;
 	
 	/** Reference system for converting to a different CRS */
 	AWorldReferenceSystem* TileReferenceSystem;

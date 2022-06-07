@@ -29,18 +29,24 @@ public:
 	AMapOverlayActor* GetOverlayActor() const;
 
 private:
+	/** Loads landscape tile around user. */
+	FReply OnLoadTerrainButtonPressed();
+
 	FText GetOverlayButtonText() const;
+
+	/** Activates or deactivates the overlay. */
 	FReply OnOverlayButtonPressed();
 
 	TSharedPtr<SWidget> ToolkitWidget;
 	TSharedPtr<IDetailsView> DetailsPanel;
-	
+
+	/** Current state of the overlay */
 	bool bOverlayActive;
 };
 
 /**
  * Slate widget for displaying current geographical & projected
- * coordinates
+ * coordinates.
  */
 class SGeoViewerCoordinates : public SCompoundWidget
 {
@@ -51,6 +57,7 @@ public:
 	void Construct(const FArguments& InArgs, TSharedRef<FGeoViewerEdModeToolkit> InParentToolkit);
 
 private:
+	/** Returns the current coordinates of the user */
 	FText GetGeoCoordinatesText() const;
 
 	TWeakPtr<FGeoViewerEdModeToolkit> ParentToolkit;

@@ -86,7 +86,7 @@ void UOverlayTileComponent::SetDataset(
 	Size.Y = FMath::Abs(Size.Y - TopCorner.Y);
 
 	// Rearrange components from Size for the Decal Size
-	DecalSize.X = 9000; //Should be a large value so that it covers all heights of terrain
+	DecalSize.X = 90000; //Should be a large value so that it covers all heights of terrain
 	DecalSize.Y = Size.X / 2;
 	DecalSize.Z = Size.Y / 2;
 

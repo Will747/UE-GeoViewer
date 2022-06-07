@@ -74,6 +74,9 @@ DerivedDataCache/*
 # Cached Tiles from the overlay
 Resources/CachedTiles/*
 
+# Terrain data folder
+Resources/Terrain/*
+
 # Include Third-party binaries
 !Source/ThirdParty/GDAL/precomputed/Win64/bin/*
 !Source/ThirdParty/GDAL/precomputed/Win64/lib/*

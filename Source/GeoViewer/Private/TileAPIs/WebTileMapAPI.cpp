@@ -15,7 +15,7 @@ void FWebMapTileAPI::LoadTile(const FProjectedBounds InTileBounds)
 	if (TileReferenceSystem)
 	{
 		//Get the bounds in projected coordinates used by the data source
-		auto [TopLeft, BottomRight] = CalculateProjectedBounds();
+		auto [TopLeft, BottomRight] = GetProjectedBounds();
 		
 		//Download all segments needed till the 'CurrentPosition' is beyond the bottom corner
 		FVector CurrentPosition = TopLeft;

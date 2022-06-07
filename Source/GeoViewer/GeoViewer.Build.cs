@@ -48,8 +48,9 @@ public class GeoViewer : ModuleRules
 				"LevelEditor",
 				"HTTP",
 				"DesktopPlatform",
-				"LandscapeEditor"
-                // ... add private dependencies that you statically link with here ...	
+				"LandscapeEditor",
+				"Landscape"
+				// ... add private dependencies that you statically link with here ...	
 			}
 			);
 		
