@@ -33,13 +33,13 @@ private:
 	FVector GetLandscapeScale() const;
 	
 	/** Called when the DEM data has been loaded */
-	void OnTileDataLoaded(GDALDataset* Dataset);
+	void OnTileDataLoaded(GDALDataset* Dataset) const;
 
 	/** Creates landscape streaming proxy actor */
-	void CreateLandscapeProxy(TArray<uint16>& HeightData);
+	void CreateLandscapeProxy(const TArray<uint16>& HeightData) const;
 
 	/** Returns landscape actor in the world or creates a new one */
-	ALandscape* GetLandscapeActor();
+	ALandscape* GetLandscapeActor() const;
 	
 	UWorld* World;
 	UGeoViewerEdModeConfig* EdModeConfig;
