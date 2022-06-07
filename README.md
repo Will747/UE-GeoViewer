@@ -1,7 +1,8 @@
 # UE-GeoViewer
-A plugin for Unreal Engine that overlays real world maps into the world making it easier to precisely place items in the world. 
+### This plugin is still being worked on and not complete.
+A plugin for Unreal Engine that overlays real world maps into the world making it easier to precisely place items in the world and imports real world terrain. 
 
-![Placing A tree with the overlay active](docs/PlacingTreeWithOverlay.png)
+![Placing A tree with the overlay active](docs/UE5Overlay.png)
 
 Using the built in GeoReferencing plugin means the maps can be used on many different projections depending on the place being created in the world and the maps are reprojected to the projected CRS using GDAL.
 
@@ -12,19 +13,16 @@ Using the built in GeoReferencing plugin means the maps can be used on many diff
 - Contains many options such as overlay type, resolution, max number of tiles/decals, decal size.
 - Stores settings and API keys in the Editor.ini file.
 - Displays current geographical coordinates.
-
+- Imports terrain data in the STRM HGT format.
 
 ## Requirements
-- UE4.27 with the GeoReferencing plugin enabled.
-- [UnrealGDAL plugin](https://github.com/TensorWorks/UnrealGDAL)
+- UE5 with the GeoReferencing plugin enabled.
 
 ## Installation
-1. Download the [precomputed version of UnrealGDAL for UE4.27.2](https://github.com/Will747/UnrealGDAL/releases/tag/v0.0.1-UE4.27.2). Alternatively, the plugin can be compiled without precomputed dependency data but would require a source build of Unreal and conan-ue4cli.
-2. Copy the folder 'UnrealGDAL' into the plugins folder of the project.
-3. Download or Clone this repository.
-4. Copy the folder 'GeoViewer' into the plugins folder of the project.
-5. Launch the project, before it starts it should come up with a warning about missing modules and the question, "Would you like to rebuild them now?". Select 'Yes' to this and both plugins should get compiled. This may take a few minutes.
-6. After that the editor should launch as normal and both plugins should be installed.
+1. Download or Clone this repository.
+2. Copy the folder 'GeoViewer' into the plugins folder of the project.
+3. Launch the project, before it starts it should come up with a warning about missing modules and the question, "Would you like to rebuild them now?". Select 'Yes' to this and the plugin should get compiled. This may take a few minutes.
+4. Afterwards the editor should launch as normal, and the plugins should be installed.
 
 ## Usage
 To get started open the 'Geo Viewer' editor mode. This will add two new actors to the world. The first is named 'WorldReferenceSystem', this is used to convert between engine coordinates and geographical coordinates. The second is named 'MapOverlayActor' this will hold the decals that get added when the overlay is active.
