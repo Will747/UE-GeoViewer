@@ -15,6 +15,8 @@ class GEOVIEWER_API AWorldReferenceSystem : public AGeoViewerReferenceSystem
 	GENERATED_BODY()
 	
 public:
+	AWorldReferenceSystem();
+	
 	/**
 	 * Finds existing reference system in world or creates a new one.
 	 * @param WorldContext Reference to the world to get the reference system from.
@@ -46,9 +48,11 @@ public:
 		const uint16 ProjectedEPSG
 		);
 
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
 private:
 	/** Gets an existing child actor with the correct projection or creates a new one */
-	AGeoViewerReferenceSystem* GetReferenceSystem(uint16 EPSG);
+	AGeoViewerReferenceSystem* GetReferenceSystem(uint16 InEPSG);
 	
 	/** EPSG code mapped to a reference system using the same EPSG */
 	UPROPERTY()

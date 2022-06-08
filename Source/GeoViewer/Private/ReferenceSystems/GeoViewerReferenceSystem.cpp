@@ -1,19 +1,21 @@
 ﻿#include "ReferenceSystems/GeoViewerReferenceSystem.h"
+#include "ReferenceSystems/WorldReferenceSystem.h"
 
-AGeoViewerReferenceSystem::AGeoViewerReferenceSystem()
+void AGeoViewerReferenceSystem::UpdateActorSettings(AWorldReferenceSystem* WorldReferenceSystem, uint16 InProjectedEPSG)
 {
-	bOriginLocationInProjectedCRS = false;
-	OriginLatitude = 54;
-	OriginLongitude = -2;
-	ProjectedCRS = "EPSG:27700";
-}
+	ProjectedCRS = EPSGToString(InProjectedEPSG);
 
-void AGeoViewerReferenceSystem::SetGeographicalOrigin(const FGeographicCoordinates WorldOrigin)
-{
-	bOriginLocationInProjectedCRS = false;
-	OriginLatitude = WorldOrigin.Latitude;
-	OriginLongitude = WorldOrigin.Longitude;
-	
+	bOriginAtPlanetCenter = WorldReferenceSystem->bOriginAtPlanetCenter;
+	bOriginLocationInProjectedCRS = WorldReferenceSystem->bOriginLocationInProjectedCRS;
+	OriginLatitude = WorldReferenceSystem->OriginLatitude;
+	OriginLongitude = WorldReferenceSystem->OriginLongitude;
+	OriginAltitude = WorldReferenceSystem->OriginAltitude;
+
+	// TODO: These would need converting to the projection of this actor
+	OriginProjectedCoordinatesEasting = WorldReferenceSystem->OriginProjectedCoordinatesEasting;
+	OriginProjectedCoordinatesNorthing = WorldReferenceSystem->OriginProjectedCoordinatesNorthing;
+	OriginProjectedCoordinatesUp = WorldReferenceSystem->OriginProjectedCoordinatesUp;
+
 	ApplySettings();
 }
 

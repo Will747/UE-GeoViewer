@@ -151,7 +151,7 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset) const
 		HeightDataCropped.Reserve(FinalTileLength * FinalTileLength);
 
 		// Crop height data down to final size
-		int MinXY = 500;
+		const int MinXY = 500;
 		for (int y = 0; y < FinalTileLength; y++)
 		{
 			for (int x = 0; x < FinalTileLength; x++)
@@ -187,6 +187,8 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 	LandscapeProxy->LandscapeMaterial = EdModeConfig->LandscapeMaterial;
 	LandscapeProxy->SetLandscapeGuid(FGuid::NewGuid());
 	LandscapeProxy->SetActorScale3D(GetLandscapeScale());
+	LandscapeProxy->LandscapeSectionOffset = CurrentSectionOffset;
+	LandscapeActor->GetLandscapeInfo()->FixupProxiesTransform();
 	
 	TMap<FGuid, TArray<uint16>> HeightmapDataPerLayers;
 	TMap<FGuid, TArray<FLandscapeImportLayerInfo>> MaterialLayerDataPerLayer;
@@ -217,8 +219,6 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 		MaterialLayerDataPerLayer,
 		ELandscapeImportAlphamapType::Additive
 		);
-
-	LandscapeActor->GetLandscapeInfo()->FixupProxiesTransform();
 }
 
 ALandscape* FLandscapeImporter::GetLandscapeActor() const

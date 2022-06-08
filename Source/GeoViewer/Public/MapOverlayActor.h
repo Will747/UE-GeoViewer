@@ -14,7 +14,7 @@
  * UE world positions. This will download the data from an API specified in the editor
  * mode config and is normally spawned by the editor mode.
  */
-UCLASS()
+UCLASS(NotPlaceable)
 class GEOVIEWER_API AMapOverlayActor : public AActor
 {
 	GENERATED_BODY()

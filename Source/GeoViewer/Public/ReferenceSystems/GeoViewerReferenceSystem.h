@@ -4,6 +4,8 @@
 #include "GeoReferencingSystem.h"
 #include "GeoViewerReferenceSystem.generated.h"
 
+class AWorldReferenceSystem;
+
 /**
  * Extends the built in geographical referencing system.
  * This actor should not be placed in the world instead use 'WorldReferenceSystem'.
@@ -14,14 +16,12 @@ class GEOVIEWER_API AGeoViewerReferenceSystem : public AGeoReferencingSystem
 	GENERATED_BODY()
 	
 public:
-	AGeoViewerReferenceSystem();
-	
 	/**
 	 * Sets the geographical origin of the reference system.
-	 * As the origin is stored as an integer value any decimal origin would be rounded.
-	 * @param WorldOrigin Origin for the reference system. Must NOT be a decimal.
+	 * @param WorldReferenceSystem Reference system to copy settings from.
+	 * @param InProjectedEPSG Projected CRS to be used by this actor.
 	 */
-	void SetGeographicalOrigin(FGeographicCoordinates WorldOrigin);
+	void UpdateActorSettings(AWorldReferenceSystem* WorldReferenceSystem, uint16 InProjectedEPSG);
 
 	/**
 	 * @return The world origin in geographical coordinates.
@@ -44,4 +44,8 @@ public:
 	 */
 	static void GetGeographicalCoordinatesAtOffset(const FGeographicCoordinates StartPos, FVector2D Offset,
 		FGeographicCoordinates& EndPos);
+
+private:
+	UPROPERTY()
+	uint16 EPSG;
 };

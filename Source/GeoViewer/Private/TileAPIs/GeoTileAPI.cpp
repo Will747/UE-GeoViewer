@@ -1,5 +1,4 @@
 ﻿#include "TileAPIS/GeoTileAPI.h"
-
 #include "GDALWarp.h"
 #include "Interfaces/IPluginManager.h"
 
@@ -115,7 +114,6 @@ FProjectedBounds FGeoTileAPI::GetProjectedBounds() const
 
 	// Coordinates in the CRS used by the source data
 	TArray<FVector> CornersProj;
-	
 	for (FGeographicCoordinates GeoCorner : GeoCorners)
 	{
 		FVector NewProjCoord;
