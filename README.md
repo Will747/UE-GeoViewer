@@ -36,9 +36,13 @@ To setup the world origin and projection select the 'WorldReferenceSystem' actor
 
 ![World Overlay System Details Panel](docs/WorldReferenceSystem.png)
 
+### Overlay
 Then the API keys need adding for either Google or Bing maps, these appear in the Geo Viewer editor mode panel when 'Show API Key' is set to true. The rest of the settings should be fine left with the default values.
 'Overlay System' can be changed to select which API to use.
 
 To activate the overlay, press the 'Activate Overlay' button at the top of the panel. This button acts as a toggle so pressing it again will deactivate the overlay.
 
 ![Bing Maps in 'Canvas Dark' mode](docs/BingCanvasDarkMode.png)
+
+### Terrain
+Currently elevation data in the HGT STRM format can be imported. All '.hgt' files should be placed in `Resources\Terrain\HGT`. Then in the editor there is a 'Load Terrain' button at the top of the GeoViewer editor panel. This will create landscape tiles based on the current geographic position in the viewport. Landscape tiles can be added gradually as the world gets created, but the '.hgt' files must keep their original filename which relates to their geographic position e.g. N00W000.hgt
