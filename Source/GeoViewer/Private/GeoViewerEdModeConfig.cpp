@@ -26,6 +26,18 @@ void UGeoViewerEdModeConfig::Load()
 	int32 GoogleMapTypeInt = (int32)EGoogleMapType::Satellite;
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("GoogleType"), GoogleMapTypeInt, GEditorSettingsIni);
 	GoogleMaps.Type = (EGoogleMapType)GoogleMapTypeInt;
+
+	// Landscape
+	GConfig->GetInt(TEXT("GeoViewer"), TEXT("LandscapeSectionSize"), SectionSize, GEditorPerProjectIni);
+	GConfig->GetInt(TEXT("GeoViewer"), TEXT("NumberOfComponents"), NumberOfComponents, GEditorPerProjectIni);
+	GConfig->GetInt(TEXT("GeoViewer"), TEXT("SectionsPerComponent"), SectionsPerComponent, GEditorPerProjectIni);
+
+	FString LandscapeMaterialName;
+	GConfig->GetString(TEXT("GeoViewer"), TEXT("LandscapeMaterial"), LandscapeMaterialName, GEditorPerProjectIni);
+	if (LandscapeMaterialName != TEXT(""))
+	{
+		LandscapeMaterial = LoadObject<UMaterialInterface>(nullptr, *LandscapeMaterialName);
+	}
 }
 
 void UGeoViewerEdModeConfig::Save()
@@ -44,6 +56,14 @@ void UGeoViewerEdModeConfig::Save()
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("GoogleTileResolution"), GoogleMaps.TileResolution, GEditorSettingsIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("GoogleType"), (int32)GoogleMaps.Type, GEditorSettingsIni);
 	GConfig->SetString(TEXT("GeoViewer"), TEXT("GoogleAPIKey"), *GoogleMaps.APIKey, GEditorSettingsIni);
+
+	// Landscape
+	GConfig->SetInt(TEXT("GeoViewer"), TEXT("LandscapeSectionSize"), SectionSize, GEditorPerProjectIni);
+	GConfig->SetInt(TEXT("GeoViewer"), TEXT("NumberOfComponents"), NumberOfComponents, GEditorPerProjectIni);
+	GConfig->SetInt(TEXT("GeoViewer"), TEXT("SectionsPerComponent"), SectionsPerComponent, GEditorPerProjectIni);
+
+	const FString LandscapeMaterialName = LandscapeMaterial ? LandscapeMaterial->GetPathName() : FString();
+	GConfig->SetString(TEXT("GeoViewer"), TEXT("LandscapeMaterial"), *LandscapeMaterialName, GEditorPerProjectIni);
 }
 
 void UGeoViewerEdModeConfig::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
