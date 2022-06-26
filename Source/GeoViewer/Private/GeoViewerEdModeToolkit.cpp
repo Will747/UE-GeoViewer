@@ -70,6 +70,7 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 				]
 			]
 			+ SVerticalBox::Slot() // Current Position Data
+			.Padding(FMargin(5))
 			.AutoHeight()
 			[
 				SNew(SGeoViewerCoordinates, SharedThis(this))
@@ -168,19 +169,16 @@ void SGeoViewerCoordinates::Construct(const FArguments& InArgs, TSharedRef<FGeoV
 
 	ChildSlot
 		[
-			SNew(SBorder)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
 			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot()
-				[
-					SNew(STextBlock)
-					.Text(NSLOCTEXT("GeoViewer", "GeographicalPositionLabel", "Geographical Position:"))
-				]
-				+ SVerticalBox::Slot()
-				[
-					SNew(STextBlock)
-					.Text(this, &SGeoViewerCoordinates::GetGeoCoordinatesText)
-				]
+				SNew(STextBlock)
+				.Text(NSLOCTEXT("GeoViewer", "GeographicalPositionLabel", "Geographical Position:"))
+			]
+			+ SVerticalBox::Slot()
+			[
+				SNew(STextBlock)
+				.Text(this, &SGeoViewerCoordinates::GetGeoCoordinatesText)
 			]
 		];
 
