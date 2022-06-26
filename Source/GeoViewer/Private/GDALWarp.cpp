@@ -35,6 +35,53 @@ GDALDatasetRef FGDALWarp::CropDataset(
 	return TranslateDataset(SrcDataset, TranslateParameters, OutFileName);
 }
 
+void FGDALWarp::DeleteVRTDatasets(TArray<FString>& DatasetPaths)
+{
+	GDALDriver* Driver = (GDALDriver*)GDALGetDriverByName("VRT");
+
+	for (FString DatasetPath : DatasetPaths)
+	{
+		Driver->Delete(TCHAR_TO_UTF8(*DatasetPath));
+	}
+}
+
+GDALDatasetRef FGDALWarp::MergeDatasets(TArray<GDALDatasetRef>& Datasets)
+{
+	TArray<GDALDataset*> DatasetPtrs;
+
+	for (GDALDatasetRef& DatasetRef : Datasets)
+	{
+		DatasetPtrs.Add(DatasetRef.Get());
+	}
+
+	return MergeDatasets(DatasetPtrs);
+}
+
+GDALDatasetRef FGDALWarp::MergeDatasets(TArray<GDALDataset*>& Datasets)
+{
+	std::vector<GDALDataset*> DatasetsVector;
+
+	for (GDALDataset* Dataset : Datasets)
+	{
+		DatasetsVector.push_back(Dataset);
+	}
+
+	int OutputError = FALSE;
+
+	GDALAllRegister();
+	
+	GDALDataset* MergedDataset = (GDALDataset*)GDALBuildVRT(
+			"",
+			DatasetsVector.size(),
+			(GDALDatasetH*)DatasetsVector.data(),
+			nullptr,
+			nullptr,
+			&OutputError
+			);
+
+	return GDALDatasetRef(MergedDataset);
+}
+
 GDALDatasetRef FGDALWarp::ResizeDataset(GDALDataset* SrcDataset, const FIntVector2 Resolution, FString& OutFileName)
 {
 	TArray<FString> TranslateParameters;

@@ -8,6 +8,8 @@ struct FGeoBounds
 {
 	FGeographicCoordinates TopLeft;
 	FGeographicCoordinates BottomRight;
+
+	FString GetGeoJson() const;
 };
 
 /** Holds the corner coordinates in a projected CRS */
@@ -15,6 +17,9 @@ struct FProjectedBounds
 {
 	FVector TopLeft;
 	FVector BottomRight;
+
+	/** Converts coordinates in projected CRS to geographic CRS. */
+	FGeoBounds ConvertToGeoBounds(AGeoViewerReferenceSystem* ReferenceSystem) const;
 };
 
 /**
@@ -35,12 +40,12 @@ public:
 	virtual ~FGeoTileAPI();
 
 	/** Called when tiles should begin to be loaded. */
-	virtual void LoadTile(FProjectedBounds TileBounds) = 0;
+	virtual void LoadTile(FProjectedBounds InTileBounds) = 0;
 
 	/** Returns the path to the folder containing cached images */
 	static FString GetCacheFolderPath();
 	
-	/** Delegate to functions to be called once complete */
+	/** Delegate to functions to be called once complete. */
 	FOnComplete OnComplete;
 protected:
 	/** Calls the on complete delegate for when the dataset has been loaded */

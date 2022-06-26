@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LandscapeImporter.h"
 #include "GeoViewerEdModeConfig.generated.h"
 
 UENUM()
@@ -133,10 +134,18 @@ public:
 
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape")
 	UMaterialInterface* LandscapeMaterial;
+
+	UPROPERTY(EditAnywhere, EditFixedSize, NonTransactional, Category = "LandscapeLayers")
+	TArray<FLandscapeImportLayerInfo> Layers;
 	
 	/** Loads and Saves config to ini file */
 	void Load();
 	void Save();
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+	/** Copies landscape layers from actor */
+	void InitializeLandscapeLayers(const ALandscape* Landscape);
+private:
+	void RefreshLandscapeLayers();
 };

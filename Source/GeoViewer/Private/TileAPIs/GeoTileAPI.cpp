@@ -2,6 +2,49 @@
 #include "GDALWarp.h"
 #include "Interfaces/IPluginManager.h"
 
+/////////////////////////////////////////////////////
+// FGeoBounds
+
+FString FGeoBounds::GetGeoJson() const
+{
+	const FString Top = "{\"type\":\"Polygon\",\"coordinates\":[[";
+	const FString Bottom = "]]}";
+
+	auto AddCoordinateString = [](const double Longitude, const double Latitude, const bool WithComma, FString& Result)
+	{
+		Result += "[" + FString::SanitizeFloat(Longitude) + "," + FString::SanitizeFloat(Latitude) + "]";
+
+		if (WithComma)
+		{
+			Result += ",";
+		}
+	};
+	
+	FString Result = Top;
+	AddCoordinateString(TopLeft.Longitude, TopLeft.Latitude, true, Result);
+	AddCoordinateString(BottomRight.Longitude, TopLeft.Latitude, true, Result);
+	AddCoordinateString(BottomRight.Longitude, BottomRight.Latitude, true,Result);
+	AddCoordinateString(TopLeft.Longitude, BottomRight.Latitude, false, Result);
+	Result += Bottom;
+
+	return Result;
+}
+
+/////////////////////////////////////////////////////
+// FGeoBounds
+
+FGeoBounds FProjectedBounds::ConvertToGeoBounds(AGeoViewerReferenceSystem* ReferenceSystem) const
+{
+	FGeoBounds Result;
+	ReferenceSystem->ProjectedToGeographic(TopLeft, Result.TopLeft);
+	ReferenceSystem->ProjectedToGeographic(BottomRight, Result.BottomRight);
+
+	return Result;
+}
+
+/////////////////////////////////////////////////////
+// FGeoTileAPI
+
 FGeoTileAPI::FGeoTileAPI(
 	TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
 	AWorldReferenceSystem* ReferencingSystem
@@ -17,12 +60,7 @@ FGeoTileAPI::~FGeoTileAPI()
 	CachedDatasets.Empty();
 
 	// Delete any vrt datasets stored in memory
-	GDALDriver* Driver = (GDALDriver*)GDALGetDriverByName("VRT");
-
-	for (FString DatasetPath : CachedDatasetPaths)
-	{
-		Driver->Delete(TCHAR_TO_UTF8(*DatasetPath));
-	}
+	FGDALWarp::DeleteVRTDatasets(CachedDatasetPaths);
 }
 
 FString FGeoTileAPI::GetCacheFolderPath()
@@ -47,25 +85,7 @@ GDALDataset* FGeoTileAPI::WarpDataset(int CachedDatasetIdx)
 
 GDALDataset* FGeoTileAPI::MergeDatasets()
 {
-	std::vector<GDALDataset*> DatasetsVector;
-
-	for (GDALDataset* Dataset : DatasetsToMerge)
-	{
-		DatasetsVector.push_back(Dataset);
-	}
-
-	int OutputError = FALSE;
-
-	GDALAllRegister();
-	
-	GDALDataset* MergedDataset = (GDALDataset*)GDALBuildVRT(
-			"",
-			DatasetsVector.size(),
-			(GDALDatasetH*)DatasetsVector.data(),
-			nullptr,
-			nullptr,
-			&OutputError
-			);
+	GDALDataset* MergedDataset = FGDALWarp::MergeDatasets(DatasetsToMerge).Release();
 
 	EmptyDatasetsToMerge();
 	

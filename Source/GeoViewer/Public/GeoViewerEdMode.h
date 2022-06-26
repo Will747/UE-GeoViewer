@@ -36,6 +36,9 @@ public:
 	AMapOverlayActor* GetOverlayActor();
 
 private:
+	/** Gets the landscape actor in current world */
+	ALandscape* GetLandscape() const;
+	
 	TWeakObjectPtr<AMapOverlayActor> OverlayActor;
 	TUniquePtr<FLandscapeImporter> LandscapeImporter;
 };

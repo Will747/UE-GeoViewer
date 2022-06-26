@@ -13,7 +13,7 @@ class FLandscapeImporter
 public:
 	FLandscapeImporter();
 
-	/** Prepares the importer for adding landscapes to the world */
+	/** Prepares the importer for adding landscapes to the world. */
 	void Initialize(UWorld* InWorld, UGeoViewerEdModeConfig* InEdModeConfig);
 
 	/**
@@ -23,28 +23,33 @@ public:
 	void LoadTile(FVector LandscapePosition);
 
 private:
-	/** Returns the total number of quads on one side of a landscape actor */
+	/** Returns the total number of quads on one side of a landscape actor. */
 	float GetNumOfQuadsOneAxis() const;
 
-	/** Returns the number of vertices on one side of a landscape actor */
+	/** Returns the number of vertices on one side of a landscape actor. */
 	float GetNumOfVerticesOneAxis() const;
 
-	/** Returns the scale to be used by all landscape actors */
+	/** Returns the scale to be used by all landscape actors. */
 	FVector GetLandscapeScale() const;
 	
-	/** Called when the DEM data has been loaded */
+	/** Called when the DEM data has been loaded. */
 	void OnTileDataLoaded(GDALDataset* Dataset) const;
 
-	/** Creates landscape streaming proxy actor */
+	/** Creates landscape streaming proxy actor. */
 	void CreateLandscapeProxy(const TArray<uint16>& HeightData) const;
 
-	/** Returns landscape actor in the world or creates a new one */
+	/** Returns landscape actor in the world or creates a new one. */
 	ALandscape* GetLandscapeActor() const;
+
+	/** Loads weight maps for each layer of the landscape in the specified bounds. */
+	void ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjectedBounds Bounds) const;
 	
 	UWorld* World;
 	UGeoViewerEdModeConfig* EdModeConfig;
+	
 	TSharedPtr<FHGTTileAPI> TileAPI;
-
+	TArray<TArray<uint8>> WeightMaps;
+	
 	/** The offset from the origin in quads */
 	FIntPoint CurrentSectionOffset;
 

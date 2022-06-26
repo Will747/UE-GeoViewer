@@ -34,6 +34,20 @@ public:
 		);
 
 	/**
+	 * Deletes all datasets at paths provided. Useful for deleting temporary datasets.
+	 * @param DatasetPaths File paths of datasets that need deleting.
+	 */
+	static void DeleteVRTDatasets(TArray<FString>& DatasetPaths);
+
+	/**
+	 * Forms one new dataset containing one or more existing datasets.
+	 * @param Datasets The datasets to be merged.
+	 * @return A dataset with many small datasets joined together.
+	 */
+	static GDALDatasetRef MergeDatasets(TArray<GDALDatasetRef>& Datasets);
+	static GDALDatasetRef MergeDatasets(TArray<GDALDataset*>& Datasets);
+	
+	/**
 	 * Changes the resolution of a dataset.
 	 * @param SrcDataset Dataset that needs resizing.
 	 * @param Resolution Dimensions the dataset should be converted to.

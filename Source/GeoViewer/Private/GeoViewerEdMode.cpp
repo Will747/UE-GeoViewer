@@ -5,6 +5,7 @@
 #include "GeoViewerEdModeToolkit.h"
 #include "EditorModeManager.h"
 #include "LevelEditorViewport.h"
+#include "Kismet/GameplayStatics.h"
 #include "Toolkits/ToolkitManager.h"
 
 const FEditorModeID FGeoViewerEdMode::EM_GeoViewerEdModeId = TEXT("EM_GeoViewerEdMode");
@@ -30,15 +31,20 @@ void FGeoViewerEdMode::Enter()
 		Toolkit = MakeShareable(new FGeoViewerEdModeToolkit);
 		Toolkit->Init(Owner->GetToolkitHost());
 	}
+
+	LandscapeImporter->Initialize(GetWorld(), UISettings);
 	
 	UISettings->Load();
 
+	if (ALandscape* Landscape = GetLandscape())
+	{
+		UISettings->InitializeLandscapeLayers(Landscape);
+	}
+	
 	if (AMapOverlayActor* CurrentMapOverlayActor = GetOverlayActor())
 	{
 		CurrentMapOverlayActor->SetConfig(UISettings);
 	}
-
-	LandscapeImporter->Initialize(GetWorld(), UISettings);
 }
 
 void FGeoViewerEdMode::Exit()
@@ -104,4 +110,21 @@ AMapOverlayActor* FGeoViewerEdMode::GetOverlayActor()
 	}
 
 	return OverlayActor.Get();
+}
+
+ALandscape* FGeoViewerEdMode::GetLandscape() const
+{
+	if (const UWorld* World = GetWorld())
+	{
+		// Search world for landscape actors
+		TArray<AActor*> Actors;
+		UGameplayStatics::GetAllActorsOfClass(World, ALandscape::StaticClass(), Actors);
+
+		if (Actors.Num() > 0)
+		{
+			return Cast<ALandscape>(Actors[0]);
+		}
+	}
+
+	return nullptr;
 }

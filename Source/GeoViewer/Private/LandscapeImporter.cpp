@@ -1,11 +1,17 @@
 ﻿#include "LandscapeImporter.h"
 
 #include "GDALWarp.h"
+#include "GeoViewer.h"
 #include "Landscape.h"
 #include "LandscapeInfo.h"
 #include "LandscapeStreamingProxy.h"
+#include "SWeightMapImportDlg.h"
+#include "HAL/FileManagerGeneric.h"
+#include "Interfaces/IPluginManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "TileAPIs/HGTTileAPI.h"
+
+#define LOCTEXT_NAMESPACE "GeoViewerLandscapeImporter"
 
 FLandscapeImporter::FLandscapeImporter(): World(nullptr), EdModeConfig(nullptr)
 {
@@ -75,6 +81,9 @@ void FLandscapeImporter::LoadTile(FVector LandscapePosition)
 		ReferenceSystem->EngineToProjected(TopCornerTile, TileBounds.TopLeft);
 		ReferenceSystem->EngineToProjected(BottomCornerTile, TileBounds.BottomRight);
 		
+		// Get weight maps
+		WeightMaps.Empty();
+		ImportWeightMap(WeightMaps, TileBounds);
 		TileAPI->LoadTile(TileBounds);
 	}
 }
@@ -175,12 +184,13 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset) const
 		}
 	} else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to load dataset"));
+		UE_LOG(LogTemp, Error, TEXT("Failed to load height data files"));
 	}
 }
 
 void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) const
 {
+	// Create Landscape Proxy
 	const ALandscape* LandscapeActor = GetLandscapeActor();
 	
 	ALandscapeStreamingProxy* LandscapeProxy = World->SpawnActor<ALandscapeStreamingProxy>();
@@ -193,8 +203,22 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 	TMap<FGuid, TArray<uint16>> HeightmapDataPerLayers;
 	TMap<FGuid, TArray<FLandscapeImportLayerInfo>> MaterialLayerDataPerLayer;
 
+	// Add weight maps to landscape layers
+	TArray<FLandscapeImportLayerInfo> LandscapeImportLayers;
+
+	if (EdModeConfig->Layers.Num() <= WeightMaps.Num())
+	{
+		for (int LayerIdx = 0; LayerIdx < EdModeConfig->Layers.Num(); LayerIdx++)
+		{
+			FLandscapeImportLayerInfo LayerInfo = EdModeConfig->Layers[LayerIdx];
+			LayerInfo.LayerData = WeightMaps[LayerIdx];
+
+			LandscapeImportLayers.Add(LayerInfo);
+		}	
+	}
+	
 	HeightmapDataPerLayers.Add(FGuid(), HeightData);
-	MaterialLayerDataPerLayer.Add(FGuid(), TArray<FLandscapeImportLayerInfo>());
+	MaterialLayerDataPerLayer.Add(FGuid(), LandscapeImportLayers);
 
 	// Height data should be a square
 	const int SideLength = FMath::Sqrt((float)HeightData.Num());
@@ -253,3 +277,144 @@ ALandscape* FLandscapeImporter::GetLandscapeActor() const
 
 	return LandscapeActor;
 }
+
+void FLandscapeImporter::ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjectedBounds Bounds) const
+{
+	// Create new window to select weight map files
+	TSharedRef<SWindow> WeightMapWindow = SNew(SWindow)
+		.Title(LOCTEXT("WeightMapWindowTitle", "Import Weight Maps"))
+		.ClientSize(FVector2D(800, 200))
+		.SupportsMaximize(false)
+		.SupportsMinimize(false);
+
+	// Convert projected bounds to geo for weight map importer widget
+	AWorldReferenceSystem* ReferenceSystem = AWorldReferenceSystem::GetWorldReferenceSystem(World);
+	FGeoBounds GeoBounds;
+	if (ReferenceSystem)
+	{
+		GeoBounds = Bounds.ConvertToGeoBounds(ReferenceSystem);
+	}
+	
+	TSharedRef<SWeightMapImportDlg> ImportDlg = SNew(SWeightMapImportDlg, WeightMapWindow, GeoBounds);
+	WeightMapWindow->SetContent(ImportDlg);
+
+	GEditor->EditorAddModalWindow(WeightMapWindow);
+
+	TArray<FString> Files = ImportDlg->GetFilePaths();
+	if (Files.Num() <= 0) return;
+	
+	// Open all weight maps
+	TArray<GDALDatasetRef> Datasets;
+	for (FString& File : Files)
+	{
+		GDALDataset* Dataset = (GDALDataset*)GDALOpen(TCHAR_TO_UTF8(*File), GA_ReadOnly);
+		Datasets.Add(GDALDatasetRef(Dataset));
+	}
+
+	// Merge datasets into one
+	GDALDatasetRef MergedDataset = FGDALWarp::MergeDatasets(Datasets);
+	if (!MergedDataset.IsValid()) return;
+	
+	if (MergedDataset->GetRasterCount() != 1)
+	{
+		UE_LOG(LogGeoViewer, Error, TEXT("Weightmaps should only contain one channel and must be greyscale!"))
+	}
+
+	// Extract to raw image
+	TArray<uint8> RawMergedWeightMap;
+	FGDALWarp::GetRawImage(MergedDataset, RawMergedWeightMap);
+
+	const int MergedXSize = MergedDataset->GetRasterXSize();
+	const int MergedYSize = MergedDataset->GetRasterYSize();
+	double MergedGeoTransform[6];
+	MergedDataset->GetGeoTransform(MergedGeoTransform);
+	const char* MergedProjection = MergedDataset->GetProjectionRef();
+	
+	// Find the max value in the weight map this should be to the number of material layers
+	int NumOfLayers = 0;
+	for (int i = 0; i < RawMergedWeightMap.Num(); i++)
+	{
+		// Reset any max values to 0
+		if (RawMergedWeightMap[i] == UINT8_MAX)
+		{
+			RawMergedWeightMap[i] = 0;
+		}
+		
+		if (RawMergedWeightMap[i] > NumOfLayers)
+		{
+			NumOfLayers = RawMergedWeightMap[i];
+		}
+	}
+
+	// Separate raw image into layers
+	TArray<TArray<uint8>> Layers;
+
+	const float TileLength = GetNumOfVerticesOneAxis();
+	FIntVector2 RequiredResolution(TileLength, TileLength);
+	
+	// Create each layer
+	for (int LayerIdx = 0; LayerIdx < NumOfLayers; LayerIdx++)
+	{
+		TArray<uint8> Layer;
+		Layer.Init(0, RawMergedWeightMap.Num());
+
+		// Go through each pixel and if the pixel value matches the layer idx make that pixel max weight
+		for (int i = 0; i < RawMergedWeightMap.Num(); i++)
+		{
+			if (RawMergedWeightMap[i] == LayerIdx)
+			{
+				Layer[i] = UINT8_MAX;
+			}
+		}
+		
+		Layers.Add(Layer);
+	}
+	
+	if (ReferenceSystem)
+	{
+		FString WorldCRS = ReferenceSystem->ProjectedCRS;
+		
+		// Paths to temp datasets that must be deleted before this function ends
+		TArray<FString> DatasetPaths;
+		
+		// Warp, crop and resize each layer
+		for (TArray<uint8>& Layer : Layers)
+		{
+			GDALDatasetRef LayerDataset =
+				FGDALWarp::CreateDataset(Layer, MergedXSize, MergedYSize, ERGBFormat::Gray);
+			LayerDataset->SetProjection(MergedProjection);
+			LayerDataset->SetGeoTransform(MergedGeoTransform);
+			
+			GDALDatasetRef WarpedLayer =
+				FGDALWarp::WarpDataset(LayerDataset, MergedProjection, WorldCRS);
+
+			FString CroppedDatasetPath;
+			GDALDatasetRef CroppedDataset =
+				FGDALWarp::CropDataset(WarpedLayer.Get(), Bounds.TopLeft, Bounds.BottomRight, CroppedDatasetPath);
+			DatasetPaths.Add(CroppedDatasetPath);
+
+			FString ResizedDatasetPath;
+			GDALDatasetRef ResizedDataset =
+				FGDALWarp::ResizeDataset(CroppedDataset.Get(), RequiredResolution, ResizedDatasetPath);
+			DatasetPaths.Add(ResizedDatasetPath);
+
+			TArray<uint8> CompletedLayer;
+			FGDALWarp::GetRawImage(
+				ResizedDataset,
+				CompletedLayer,
+				RequiredResolution.X,
+				RequiredResolution.Y,
+				1
+				);
+
+			RawData.Add(CompletedLayer);
+
+			Layer.Empty();
+		}
+
+		FGDALWarp::DeleteVRTDatasets(DatasetPaths);
+	}
+	
+}
+
+#undef LOCTEXT_NAMESPACE

@@ -1,5 +1,6 @@
 #include "GeoViewerEdModeConfig.h"
 #include "GeoViewerEdMode.h"
+#include "LandscapeInfo.h"
 
 void UGeoViewerEdModeConfig::Load()
 {
@@ -37,6 +38,7 @@ void UGeoViewerEdModeConfig::Load()
 	if (LandscapeMaterialName != TEXT(""))
 	{
 		LandscapeMaterial = LoadObject<UMaterialInterface>(nullptr, *LandscapeMaterialName);
+		RefreshLandscapeLayers();
 	}
 }
 
@@ -74,5 +76,49 @@ void UGeoViewerEdModeConfig::PostEditChangeProperty(FPropertyChangedEvent& Prope
 	if (ParentMode && PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
 	{
 		ParentMode->ResetOverlay();
+	}
+
+	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, LandscapeMaterial))
+	{
+		RefreshLandscapeLayers();
+	}
+}
+
+void UGeoViewerEdModeConfig::InitializeLandscapeLayers(const ALandscape* Landscape)
+{
+	// Copy the layer settings from the landscape actor if the material matches
+	if (Landscape->GetLandscapeMaterial() == LandscapeMaterial)
+	{
+		ULandscapeInfo* LandscapeInfo = Landscape->GetLandscapeInfo();
+
+		if (LandscapeInfo)
+		{
+			Layers.Empty();
+
+			for (const FLandscapeInfoLayerSettings& LandscapeLayer : LandscapeInfo->Layers)
+			{
+				// Convert FLandscapeInfoLayerSettings to FLandscapeImportLayerInfo
+				FLandscapeImportLayerInfo LayerInfo(LandscapeLayer.LayerName);
+				LayerInfo.LayerInfo = LandscapeLayer.LayerInfoObj;
+				Layers.Add(LayerInfo);
+			}
+		}
+	}
+}
+
+void UGeoViewerEdModeConfig::RefreshLandscapeLayers()
+{
+	Layers.Empty();
+	
+	if (LandscapeMaterial)
+	{
+		TArray<FName> MaterialLayers = LandscapeMaterial->GetCachedExpressionData().LandscapeLayerNames;
+		for (const FName& MaterialLayerName : MaterialLayers)
+		{
+			FLandscapeImportLayerInfo LayerInfo;
+			LayerInfo.LayerName = MaterialLayerName;
+
+			Layers.Add(LayerInfo);
+		}
 	}
 }
