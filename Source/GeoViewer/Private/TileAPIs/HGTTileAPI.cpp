@@ -108,7 +108,7 @@ FString FHGTTileAPI::GetTerrainFolder()
 	return PluginManager->GetBaseDir() + TEXT("/Resources/Terrain/HGT/");
 }
 
-FString FHGTTileAPI::ConvertIntToString(const int Number, int NumOfDigits)
+FString FHGTTileAPI::ConvertIntToString(const int Number, const int NumOfDigits)
 {
 	FString NumberString = FString::FromInt(Number);
 

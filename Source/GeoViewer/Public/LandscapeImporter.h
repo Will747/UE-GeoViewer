@@ -33,7 +33,7 @@ private:
 	FVector GetLandscapeScale() const;
 	
 	/** Called when the DEM data has been loaded. */
-	void OnTileDataLoaded(GDALDataset* Dataset) const;
+	void OnTileDataLoaded(GDALDataset* Dataset);
 
 	/** Creates landscape streaming proxy actor. */
 	void CreateLandscapeProxy(const TArray<uint16>& HeightData) const;
@@ -43,12 +43,17 @@ private:
 
 	/** Loads weight maps for each layer of the landscape in the specified bounds. */
 	void ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjectedBounds Bounds) const;
+
+	/** Gets API being used to import landscapes. */
+	TSharedRef<FGeoTileAPI> GetTileAPI();
 	
 	UWorld* World;
 	UGeoViewerEdModeConfig* EdModeConfig;
 	
-	TSharedPtr<FHGTTileAPI> TileAPI;
 	TArray<TArray<uint8>> WeightMaps;
+
+	/** Used to prevent the object being deleted */
+	TSharedPtr<FGeoTileAPI> CachedTileAPI;
 	
 	/** The offset from the origin in quads */
 	FIntPoint CurrentSectionOffset;

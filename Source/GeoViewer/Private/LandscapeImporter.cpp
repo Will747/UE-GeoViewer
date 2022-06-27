@@ -20,21 +20,6 @@ void FLandscapeImporter::Initialize(UWorld* InWorld, UGeoViewerEdModeConfig* InE
 {
 	World = InWorld;
 	EdModeConfig = InEdModeConfig;
-
-	if (EdModeConfig && World)
-	{
-		switch (EdModeConfig->LandscapeFormat)
-		{
-		case ELandscapeFormat::STRM:
-		default:
-			TileAPI = MakeShared<FHGTTileAPI>(
-				InEdModeConfig,
-				AWorldReferenceSystem::GetWorldReferenceSystem(World)
-				);
-		}
-
-		TileAPI->OnComplete.BindRaw(this, &FLandscapeImporter::OnTileDataLoaded);
-	}
 }
 
 void FLandscapeImporter::LoadTile(FVector LandscapePosition)
@@ -83,7 +68,11 @@ void FLandscapeImporter::LoadTile(FVector LandscapePosition)
 		// Get weight maps
 		WeightMaps.Empty();
 		ImportWeightMap(WeightMaps, TileBounds);
+
+		const TSharedRef<FGeoTileAPI> TileAPI = GetTileAPI();
 		TileAPI->LoadTile(TileBounds);
+		
+		CachedTileAPI = TileAPI;
 	}
 }
 
@@ -109,7 +98,7 @@ FVector FLandscapeImporter::GetLandscapeScale() const
 	return FVector(100, 100, ZScale);
 }
 
-void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset) const
+void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 {
 	if (Dataset)
 	{
@@ -175,13 +164,10 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset) const
 		}
 		
 		// Remove all datasets from memory
-		GDALDriver* Driver = (GDALDriver*)GDALGetDriverByName("VRT");
-
-		for (FString DatasetPath : FilesToDelete)
-		{
-			Driver->Delete(TCHAR_TO_UTF8(*DatasetPath));
-		}
-	} else
+		CachedTileAPI.Reset();
+		FGDALWarp::DeleteVRTDatasets(FilesToDelete);
+	}
+	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to load height data files"));
 	}
@@ -431,6 +417,25 @@ void FLandscapeImporter::ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjec
 		FGDALWarp::DeleteVRTDatasets(DatasetPaths);
 	}
 	
+}
+
+TSharedRef<FGeoTileAPI> FLandscapeImporter::GetTileAPI()
+{
+	TSharedPtr<FGeoTileAPI> Output;
+	
+	switch (EdModeConfig->LandscapeFormat)
+	{
+		case ELandscapeFormat::STRM:
+		default:
+			Output = MakeShared<FHGTTileAPI>(
+				EdModeConfig,
+				AWorldReferenceSystem::GetWorldReferenceSystem(World)
+				);
+	}
+
+	Output->OnComplete.BindRaw(this, &FLandscapeImporter::OnTileDataLoaded);
+
+	return Output.ToSharedRef();
 }
 
 #undef LOCTEXT_NAMESPACE
