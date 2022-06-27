@@ -7,7 +7,6 @@
 #include "LandscapeStreamingProxy.h"
 #include "SWeightMapImportDlg.h"
 #include "HAL/FileManagerGeneric.h"
-#include "Interfaces/IPluginManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "TileAPIs/HGTTileAPI.h"
 
@@ -190,6 +189,37 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset) const
 
 void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) const
 {
+	// Prepare weight maps for landscape
+	TArray<FLandscapeImportLayerInfo> LandscapeImportLayers;
+	
+	if (EdModeConfig->Layers.Num() <= WeightMaps.Num())
+	{
+		for (int LayerIdx = 0; LayerIdx < EdModeConfig->Layers.Num(); LayerIdx++)
+		{
+			FLandscapeImportLayerInfo LayerInfo = EdModeConfig->Layers[LayerIdx];
+
+			if (LayerInfo.LayerInfo.Get())
+			{
+				LayerInfo.LayerData = WeightMaps[LayerIdx];
+				LandscapeImportLayers.Add(LayerInfo);
+			}
+			else
+			{
+				// Without a layer info object this layer can't be added
+				FText LayerNameText = FText::FromName(LayerInfo.LayerName);
+				EAppReturnType::Type MessageResponse = FMessageDialog::Open(
+					EAppMsgType::OkCancel,
+					FText::Format(LOCTEXT("LayerInfoMissing", "Missing layer info for '{0}'"), LayerNameText)
+				);
+
+				if (MessageResponse == EAppReturnType::Cancel)
+				{
+					return;
+				}
+			}
+		}	
+	}
+	
 	// Create Landscape Proxy
 	const ALandscape* LandscapeActor = GetLandscapeActor();
 	
@@ -202,20 +232,6 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 	
 	TMap<FGuid, TArray<uint16>> HeightmapDataPerLayers;
 	TMap<FGuid, TArray<FLandscapeImportLayerInfo>> MaterialLayerDataPerLayer;
-
-	// Add weight maps to landscape layers
-	TArray<FLandscapeImportLayerInfo> LandscapeImportLayers;
-
-	if (EdModeConfig->Layers.Num() <= WeightMaps.Num())
-	{
-		for (int LayerIdx = 0; LayerIdx < EdModeConfig->Layers.Num(); LayerIdx++)
-		{
-			FLandscapeImportLayerInfo LayerInfo = EdModeConfig->Layers[LayerIdx];
-			LayerInfo.LayerData = WeightMaps[LayerIdx];
-
-			LandscapeImportLayers.Add(LayerInfo);
-		}	
-	}
 	
 	HeightmapDataPerLayers.Add(FGuid(), HeightData);
 	MaterialLayerDataPerLayer.Add(FGuid(), LandscapeImportLayers);
