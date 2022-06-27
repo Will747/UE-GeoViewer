@@ -85,6 +85,11 @@ GDALDataset* FGeoTileAPI::WarpDataset(int CachedDatasetIdx)
 
 GDALDataset* FGeoTileAPI::MergeDatasets()
 {
+	if (DatasetsToMerge.Num() <= 0)
+	{
+		return nullptr;
+	}
+	
 	GDALDataset* MergedDataset = FGDALWarp::MergeDatasets(DatasetsToMerge).Release();
 
 	EmptyDatasetsToMerge();

@@ -1,7 +1,8 @@
 ﻿#include "TileAPIs/HGTTileAPI.h"
-
 #include "GDALWarp.h"
 #include "Interfaces/IPluginManager.h"
+
+#define LOCTEXT_NAMESPACE "GeoViewerHGTTile"
 
 FHGTTileAPI::FHGTTileAPI(
 	const TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
@@ -42,6 +43,8 @@ void FHGTTileAPI::LoadTile(FProjectedBounds InTileBounds)
 	}
 	
 	GDALDataset* MergedDataset = MergeDatasets();
+	if (!MergedDataset) TriggerOnCompleted(nullptr);
+	
 	const int MergedDatasetIdx = CachedDatasets.Add(GDALDatasetRef(MergedDataset));
 	GDALDataset* WarpedDataset = WarpDataset(MergedDatasetIdx);
 	const int WarpedDatasetIdx = CachedDatasets.Add(GDALDatasetRef(WarpedDataset));
@@ -66,6 +69,14 @@ int FHGTTileAPI::OpenDataset(const FGeographicCoordinates PositionWithinTile)
 	{
 		GDALDataset* Dataset = (GDALDataset*)GDALOpen(TCHAR_TO_UTF8(*TileFileName), GA_ReadOnly);
 		return DatasetsToMerge.Add(Dataset);
+	}
+
+	const FText ErrorMsg = FText::Format(LOCTEXT("MissingHGTFile", "Cannot find: {0}"), FText::FromString(TileFileName));
+	const EAppReturnType::Type Response = FMessageDialog::Open(EAppMsgType::CancelRetryContinue, ErrorMsg);
+
+	if (Response == EAppReturnType::Retry)
+	{
+		return OpenDataset(PositionWithinTile);
 	}
 
 	return -1;
@@ -119,3 +130,5 @@ FString FHGTTileAPI::ConvertIntToString(const int Number, const int NumOfDigits)
 
 	return NumberString;
 }
+
+#undef LOCTEXT_NAMESPACE
