@@ -105,7 +105,14 @@ void FWebMapTileAPI::CheckComplete()
 		SegmentsDownloaders.Empty();
 		
 		// At this point all segments have been downloaded so the final dataset can be created.
-		const int MergedDatasetIdx = CachedDatasets.Add(GDALDatasetRef(MergeDatasets()));
+		GDALDataset* MergedDataset = MergeDatasets();
+		if (!MergedDataset)
+		{
+			TriggerOnCompleted(nullptr);
+		}
+		
+		const int MergedDatasetIdx = CachedDatasets.Add(GDALDatasetRef(MergedDataset));
+		
 		GDALDataset* WarpedDataset = WarpDataset(MergedDatasetIdx);
 		CachedDatasets.Add(GDALDatasetRef(WarpedDataset));
 
@@ -125,8 +132,16 @@ void FWebMapTileAPI::CheckComplete()
 
 void FWebMapTileAPI::OnSegmentCompleted(const FTileDownloader* TileDownloader)
 {
-	DatasetsToMerge.Add(TileDownloader->FinalDataset);
-	CheckComplete();
+	if (TileDownloader->FinalDataset)
+	{
+		DatasetsToMerge.Add(TileDownloader->FinalDataset);
+		CheckComplete();
+	}
+	else
+	{
+		TriggerOnCompleted(nullptr);
+	}
+	
 }
 
 int FWebMapTileAPI::CalculateTileSize(double Latitude) const

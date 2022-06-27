@@ -6,7 +6,7 @@
 #include "Interfaces/IHttpResponse.h"
 #include "TileAPIS/GeoTileAPI.h"
 
-FTileDownloader::FTileDownloader(): EPSG(0)
+FTileDownloader::FTileDownloader(): FinalDataset(nullptr), EPSG(0)
 {
 }
 
@@ -70,7 +70,8 @@ void FTileDownloader::DownloadFinished(FHttpRequestPtr HttpRequest, FHttpRespons
 	// Parse the content
 	if (!ImageWrapper || !ImageWrapper->SetCompressed(Content.GetData(), Content.Num()))
 	{
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, "Map Overlay: Failed to read image");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, "Map Overlay: Failed to download image");
+		OnDownloaded.Execute(this);
 		return;
 	}
 

@@ -170,6 +170,11 @@ void AMapOverlayActor::AddOverlayTile(GDALDataset* Dataset, FString Key)
 	// Remove the generator for the tiles map as it can be destroyed once the texture is created
 	const TSharedPtr<FOverlayTileGenerator> TileGenerator = Tiles[Key];
 	Tiles[Key].Reset();
+
+	if (!Dataset)
+	{
+		return;
+	}
 	
 	if (NextComponent)
 	{
