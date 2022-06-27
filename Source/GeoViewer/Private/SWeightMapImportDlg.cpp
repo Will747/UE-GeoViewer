@@ -5,6 +5,7 @@
 #include "IDesktopPlatform.h"
 #include "Misc/FileHelper.h"
 #include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Text/SRichTextBlock.h"
 
 #define LOCTEXT_NAMESPACE "GeoViewerWeightMapDlg"
 
@@ -32,6 +33,7 @@ void SWeightMapImportDlg::Construct(
 				SNew(SHorizontalBox)
 				
 				+SHorizontalBox::Slot() // Weight map section
+				.Padding(5)
 				[
 					SNew(SVerticalBox)
 
@@ -67,10 +69,51 @@ void SWeightMapImportDlg::Construct(
 				]
 
 				+SHorizontalBox::Slot() // Bounds section
+				.Padding(5)
 				[
-					SNew(SButton)
-					.Text(LOCTEXT("SaveGeoJsonButton", "Save landscape GeoJson file"))
-					.OnClicked(this, &SWeightMapImportDlg::OnSaveGeoJsonClicked)
+					SNew(SVerticalBox)
+
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SNew(SBorder)
+						.Padding(5)
+						[
+							SNew(SVerticalBox)
+
+							+SVerticalBox::Slot()
+							[
+								SNew(STextBlock)
+								.Text(LOCTEXT("LandscapeBoundsText", "Landscape Bounds"))
+							]
+
+							+SVerticalBox::Slot()
+							[
+								SNew(STextBlock)
+								.Text(
+									FText::Format(LOCTEXT("LandscapeTopLeftText", "Top Left - {0}"),
+										GetCoordinateText(LandscapeBounds.TopLeft)))
+							]
+							
+							+SVerticalBox::Slot()
+							[
+								SNew(STextBlock)
+								.Text(
+									FText::Format(
+										LOCTEXT("LandscapeBottomRightText", "Bottom Right - {0}"),
+										GetCoordinateText(LandscapeBounds.BottomRight)))
+							]
+						]
+					]
+					
+					+SVerticalBox::Slot()
+					.AutoHeight()
+					.HAlign(HAlign_Center)
+					[
+						SNew(SButton)
+						.Text(LOCTEXT("SaveGeoJsonButton", "Save landscape GeoJson file"))
+						.OnClicked(this, &SWeightMapImportDlg::OnSaveGeoJsonClicked)
+					]
 				]
 			]
 
@@ -86,6 +129,16 @@ void SWeightMapImportDlg::Construct(
 			]
 		]
 	];
+}
+
+FText SWeightMapImportDlg::GetCoordinateText(FGeographicCoordinates Coordinates) const
+{
+	TArray<FText> Args;
+	Args.Init(FText(), 2);
+	FText Altitude;
+	Coordinates.ToSeparateTexts(Args[0], Args[1], Altitude);
+	
+	return FText::Join(LOCTEXT("CoordinateComma", ", "), Args);
 }
 
 void SWeightMapImportDlg::RefreshFilesList()

@@ -17,6 +17,9 @@ public:
 	TArray<FString>& GetFilePaths() { return Files; }
 	
 private:
+	/** Returns landscape bounds */
+	FText GetCoordinateText(FGeographicCoordinates Coordinates) const;
+	
 	/** Updates files box with files */
 	void RefreshFilesList();
 	
