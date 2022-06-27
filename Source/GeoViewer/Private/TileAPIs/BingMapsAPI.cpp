@@ -1,14 +1,17 @@
 ﻿#include "TileAPIs/BingMapsAPI.h"
+#include "GeoViewerSettings.h"
 
 FBingMapsAPI::FBingMapsAPI(TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
                            AWorldReferenceSystem* ReferencingSystem):
 	FWebMapTileAPI(InEdModeConfig, ReferencingSystem)
 {
+	UGeoViewerSettings* Settings = GetMutableDefault<UGeoViewerSettings>();
+	
 	if (EdModeConfigPtr.IsValid())
 	{
 		TileResolution = EdModeConfigPtr->BingMaps.TileResolution;
 		ZoomLevel = EdModeConfigPtr->BingMaps.ZoomLevel;
-		APIKey = EdModeConfigPtr->BingMaps.APIKey;
+		APIKey = Settings->BingMapsAPIKey;
 		MapType = GetMapTypeStr(EdModeConfigPtr->BingMaps.Type);
 	}
 }

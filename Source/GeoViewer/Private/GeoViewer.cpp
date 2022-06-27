@@ -2,7 +2,9 @@
 
 #include "GeoViewer.h"
 #include "GeoViewerEdMode.h"
+#include "GeoViewerSettings.h"
 #include "GeoViewerStyle.h"
+#include "ISettingsModule.h"
 
 #define LOCTEXT_NAMESPACE "FGeoViewerModule"
 
@@ -19,6 +21,17 @@ void FGeoViewerModule::StartupModule()
 		FSlateIcon(FGeoViewerStyle::GetStyleSetName(), "GeoViewer.Icon", "GeoViewer.Icon.Small"),
 		true
 		);
+
+	// Add Editor Preferences
+	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->RegisterSettings(
+			"Editor", "Plugins", "GeoViewer",
+			LOCTEXT("SettingsDisplayName", "Geo Viewer"),
+			LOCTEXT("SettingsDescription", "Configuration settings for the GeoViewer plugin."),
+			GetMutableDefault<UGeoViewerSettings>()
+			);
+	}
 	
 	// Initialize GDAL
 	FString GDALDataPath =
@@ -33,6 +46,12 @@ void FGeoViewerModule::ShutdownModule()
 	FGeoViewerStyle::Shutdown();
 	
 	FEditorModeRegistry::Get().UnregisterMode(FGeoViewerEdMode::EM_GeoViewerEdModeId);
+	
+	// Unregister Editor Preferences
+	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->UnregisterSettings("Editor", "Plugins", "GeoViewer");
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

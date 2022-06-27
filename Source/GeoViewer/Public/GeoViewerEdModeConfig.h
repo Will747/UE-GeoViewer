@@ -28,12 +28,6 @@ struct FGoogleMapsOverlayConfig
 	/** The type of map used */
 	UPROPERTY(EditAnywhere, NonTransactional)
 	EGoogleMapType Type = EGoogleMapType::Satellite;
-
-	UPROPERTY(EditAnywhere, NonTransactional, DisplayName="Show API Key")
-	bool bShowAPIKey = false;
-	
-	UPROPERTY(EditAnywhere, NonTransactional, DisplayName="API Key", meta = (EditConditionHides, EditCondition = "bShowAPIKey"))
-	FString APIKey;
 };
 
 UENUM()
@@ -62,12 +56,6 @@ struct FBingMapsOverlayConfig
 	/** The type of map used */
 	UPROPERTY(EditAnywhere, NonTransactional)
 	EBingMapType Type = EBingMapType::Aerial;
-
-	UPROPERTY(EditAnywhere, NonTransactional, DisplayName="Show API Key")
-	bool bShowAPIKey = false;
-	
-	UPROPERTY(EditAnywhere, NonTransactional, DisplayName="API Key", meta = (EditConditionHides, EditCondition = "bShowAPIKey"))
-	FString APIKey;
 };
 
 UENUM()

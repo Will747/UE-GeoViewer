@@ -1,14 +1,18 @@
 ﻿#include "TileAPIs/GoogleMapsAPI.h"
 
+#include "GeoViewerSettings.h"
+
 FGoogleMapsAPI::FGoogleMapsAPI(TWeakObjectPtr<UGeoViewerEdModeConfig> InEdModeConfig,
-	AWorldReferenceSystem* ReferencingSystem):
+                               AWorldReferenceSystem* ReferencingSystem):
 	FWebMapTileAPI(InEdModeConfig, ReferencingSystem)
 {
-	if (EdModeConfigPtr.IsValid())
+	UGeoViewerSettings* Settings = GetMutableDefault<UGeoViewerSettings>();
+	
+	if (Settings && EdModeConfigPtr.IsValid())
 	{
 		TileResolution = EdModeConfigPtr->GoogleMaps.TileResolution;
 		ZoomLevel = EdModeConfigPtr->GoogleMaps.ZoomLevel;
-		APIKey = EdModeConfigPtr->GoogleMaps.APIKey;
+		APIKey = Settings->GoogleMapsAPIKey;
 		MapType = GetMapTypeStr(EdModeConfigPtr->GoogleMaps.Type);
 	}
 }
