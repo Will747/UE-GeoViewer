@@ -1,7 +1,7 @@
 ﻿#include "GDALWarp.h"
 #include "GeoViewer.h"
 
-GDALDatasetRef FGDALWarp::WarpDataset(GDALDatasetRef& Dataset, FString CurrentCRS, FString FinalCRS)
+GDALDatasetRef FGDALWarp::WarpDataset(const GDALDatasetRef& Dataset, const FString CurrentCRS, const FString FinalCRS)
 {
 	const FString SrcWKT = ConvertToWKT(CurrentCRS);
 	const FString DstWKT = ConvertToWKT(FinalCRS);

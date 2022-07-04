@@ -14,7 +14,7 @@ public:
 		AWorldReferenceSystem* ReferencingSystem
 		);
 	
-	virtual void LoadTile(FProjectedBounds TileBounds) override;
+	virtual void LoadTile(FProjectedBounds InTileBounds) override;
 
 protected:
 	/** 
@@ -31,13 +31,28 @@ protected:
 	 */
 	virtual FString GetTileURL(FGeographicCoordinates Coordinates) const = 0;
 
-	/** The scale of a segment, where 0 is the entire earth and buildings are at 20 */
-	int ZoomLevel;
+	/**
+	 * Once a segment has been downloaded and converted to a Dataset this method is called.
+	 * It adds the completed dataset to the array of datasets to merge and checks if all datasets are added.
+	 * @param TileDownloader The object calling this function.
+	 */
+	virtual void OnSegmentCompleted(const FTileDownloader* TileDownloader);
 
-	/** The side length of one segment in number of pixels */
-	int TileResolution;
-	
-private:
+	/**
+	 * Calculates the side length for an image based on latitude, zoom level and resolution.
+	 * @param Latitude The latitude position of the image.
+	 * @return The side length of the image in meters.
+	 */
+	float CalculateTileSize(double Latitude) const;
+
+	/**
+	 * Returns the distance in projected units per pixel.
+	 * @param TopCorner The top corner of the segment in projected crs.
+	 * @param SegmentCenter The geographic center position of the segment.
+	 * @param SegmentSize The size of the segment in projected units.
+	 */
+	FVector2D GetProjectedPixelSize(FVector TopCorner, FGeographicCoordinates& SegmentCenter, FVector& SegmentSize) const;
+
 	/**
 	 * Checks if all segments needed to form the final tile are ready, then merges all
 	 * segments into one dataset, warps the dataset to the one used by the world then
@@ -45,19 +60,11 @@ private:
 	 */
 	void CheckComplete();
 	
-	/**
-	 * Once a segment has been downloaded and converted to a Dataset this method is called.
-	 * It adds the completed dataset to the array of datasets to merge and checks if all datasets are added.
-	 * @param TileDownloader The object calling this function.
-	 */
-	void OnSegmentCompleted(const FTileDownloader* TileDownloader);
+	/** The scale of a segment, where 0 is the entire earth and buildings are at 20 */
+	int ZoomLevel;
 
-	/**
-	 * Calculates the side length for an image based on latitude, zoom level and resolution.
-	 * @param Latitude The latitude position of the image.
-	 * @return The side length of the image in meters.
-	 */
-	int CalculateTileSize(double Latitude) const;
+	/** The side length of one segment in number of pixels */
+	int TileResolution;
 	
 	/** Reference to the object downloading the tile to prevent garbage collection */
 	TArray<TSharedRef<FTileDownloader>> SegmentsDownloaders;

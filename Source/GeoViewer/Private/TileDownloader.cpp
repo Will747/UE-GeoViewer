@@ -70,7 +70,7 @@ void FTileDownloader::DownloadFinished(FHttpRequestPtr HttpRequest, FHttpRespons
 	// Parse the content
 	if (!ImageWrapper || !ImageWrapper->SetCompressed(Content.GetData(), Content.Num()))
 	{
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, "Map Overlay: Failed to download image");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, "Geo Viewer: Failed to download tile");
 		OnDownloaded.Execute(this);
 		return;
 	}

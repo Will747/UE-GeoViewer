@@ -68,7 +68,8 @@ enum class EOverlayMapSystem : uint8
 UENUM()
 enum class ELandscapeFormat : uint8
 {
-	STRM UMETA(DisplayName = "STRM HGT Format")
+	STRM UMETA(DisplayName = "STRM HGT Format"),
+	Mapbox
 };
 
 /**

@@ -6,7 +6,7 @@ void UGeoViewerEdModeConfig::Load()
 {
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("MainTileSize"), TileSize, GEditorSettingsIni);
 
-	int32 OverlaySystemInt = (int32)EBingMapType::Aerial;
+	int32 OverlaySystemInt = (int32)EOverlayMapSystem::GoogleMaps;
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("OverlaySystem"), OverlaySystemInt, GEditorSettingsIni);
 	OverlaySystem = (EOverlayMapSystem)OverlaySystemInt;
 
@@ -27,6 +27,10 @@ void UGeoViewerEdModeConfig::Load()
 	GoogleMaps.Type = (EGoogleMapType)GoogleMapTypeInt;
 
 	// Landscape
+	int32 LandscapeFormatInt = (int32)ELandscapeFormat::STRM;
+	GConfig->GetInt(TEXT("GeoViewer"), TEXT("LandscapeFormat"), LandscapeFormatInt, GEditorSettingsIni);
+	LandscapeFormat = (ELandscapeFormat)LandscapeFormatInt;
+	
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("LandscapeSectionSize"), SectionSize, GEditorPerProjectIni);
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("NumberOfComponents"), NumberOfComponents, GEditorPerProjectIni);
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("SectionsPerComponent"), SectionsPerComponent, GEditorPerProjectIni);
@@ -56,6 +60,7 @@ void UGeoViewerEdModeConfig::Save()
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("GoogleType"), (int32)GoogleMaps.Type, GEditorSettingsIni);
 
 	// Landscape
+	GConfig->SetInt(TEXT("GeoViewer"), TEXT("LandscapeFormat"), (int32)LandscapeFormat, GEditorSettingsIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("LandscapeSectionSize"), SectionSize, GEditorPerProjectIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("NumberOfComponents"), NumberOfComponents, GEditorPerProjectIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("SectionsPerComponent"), SectionsPerComponent, GEditorPerProjectIni);

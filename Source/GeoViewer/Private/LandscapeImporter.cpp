@@ -9,6 +9,7 @@
 #include "HAL/FileManagerGeneric.h"
 #include "Kismet/GameplayStatics.h"
 #include "TileAPIs/HGTTileAPI.h"
+#include "TileAPIs/MapBoxTerrain.h"
 
 #define LOCTEXT_NAMESPACE "GeoViewerLandscapeImporter"
 
@@ -102,22 +103,23 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 {
 	if (Dataset)
 	{
-		// Read height data from dataset
-		TArray<int16> HeightDataSigned;
 		GDALDatasetRef DatasetRef(Dataset);
-		FGDALWarp::GetRawImage(DatasetRef, HeightDataSigned);
 
 		const float HeightScale = UINT16_MAX / (MountEverestHeight/2);
 		constexpr float SeaLevelOffset = UINT16_MAX / 2;
 		
-		// Convert and resize height data to uint16
 		TArray<uint16> HeightData;
+		
+		// Read height data from dataset
+		TArray<int16> HeightDataSigned;
+		FGDALWarp::GetRawImage(DatasetRef, HeightDataSigned);
+
+		// Convert and resize height data to uint16
 		HeightData.Init(0, HeightDataSigned.Num());
 		for (int i = 0; i < HeightDataSigned.Num(); i++)
 		{
 			HeightData[i] = SeaLevelOffset + (HeightDataSigned[i] * HeightScale);
 		}
-		HeightDataSigned.Empty();
 
 		// Tile size in pixels
 		const float FinalTileLength = GetNumOfVerticesOneAxis();
@@ -164,13 +166,14 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 		}
 		
 		// Remove all datasets from memory
-		CachedTileAPI.Reset();
 		FGDALWarp::DeleteVRTDatasets(FilesToDelete);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to load height data files"));
 	}
+
+	CachedTileAPI.Reset();
 }
 
 void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) const
@@ -425,6 +428,12 @@ TSharedRef<FGeoTileAPI> FLandscapeImporter::GetTileAPI()
 	
 	switch (EdModeConfig->LandscapeFormat)
 	{
+		case ELandscapeFormat::Mapbox:
+			Output = MakeShared<FMapBoxTerrain>(
+					EdModeConfig,
+					AWorldReferenceSystem::GetWorldReferenceSystem(World)
+					);
+			break;
 		case ELandscapeFormat::STRM:
 		default:
 			Output = MakeShared<FHGTTileAPI>(

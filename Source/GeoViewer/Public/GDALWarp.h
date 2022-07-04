@@ -16,7 +16,7 @@ public:
 	 * @param FinalCRS CRS used by the returned dataset.
 	 * @return Dataset reprojected to the new CRS.
 	 */
-	static GDALDatasetRef WarpDataset(GDALDatasetRef& Dataset, FString CurrentCRS, FString FinalCRS);
+	static GDALDatasetRef WarpDataset(const GDALDatasetRef& Dataset, FString CurrentCRS, FString FinalCRS);
 
 	/**
 	 * Crops a dataset down to the provided bounds.
@@ -61,16 +61,34 @@ public:
 	);
 	
 	/**
-	 * Creates a new dataset containing raster bands created from the RawData parameter.
+	 * Creates a new MEM dataset containing raster bands created from the RawData parameter.
 	 * @param RawData Raw image data to add to the dataset.
 	 * @param XSize Number of rows in the image.
 	 * @param YSize Number of columns in the image.
 	 * @param Format Pixel format used by the image.
-	 * @return GDALDataset containing the 'RawData'.
+	 * @return Dataset containing the 'RawData'.
 	 */
 	template<typename T>
 	static GDALDatasetRef CreateDataset(TArray<T>& RawData, int XSize, int YSize, ERGBFormat Format = ERGBFormat::RGBA);
 
+	/**
+	 * Creates a new GTiff dataset containing raster bands created from the RawData parameter.
+	 * @param RawData Raw image data to add to the dataset.
+	 * @param XSize Number of rows in the image.
+	 * @param YSize Number of columns in the image.
+	 * @param Format Pixel format used by the image.
+	 * @param OutFileName The path of the GTiff file.
+	 * @return Dataset containing the 'RawData'.
+	 */
+	template<typename T>
+	static GDALDatasetRef CreateGTiffDataset(
+		TArray<T>& RawData,
+		int XSize,
+		int YSize,
+		FString& OutFileName,
+		ERGBFormat Format = ERGBFormat::RGBA
+		);
+	
 	/**
 	 * Sets the geo transform and projection on a dataset.
 	 * @param Dataset Dataset to set the metadata on.
@@ -158,6 +176,52 @@ GDALDatasetRef FGDALWarp::CreateDataset(TArray<T>& RawData, int XSize, int YSize
 		);
 	
 	return mergetiff::DatasetManagement::datasetFromRaster(RasterData);
+}
+
+template <typename T>
+GDALDatasetRef FGDALWarp::CreateGTiffDataset(TArray<T>& RawData, int XSize, int YSize, FString& OutFileName,
+	ERGBFormat Format)
+{
+	const FGuid DatasetGuid = FGuid::NewGuid();
+	OutFileName += "/vsimem/" + DatasetGuid.ToString() + ".tif";
+	
+	int ChannelNum = 4;
+	if (Format == ERGBFormat::Gray)
+	{
+		ChannelNum = 1;
+	}
+
+	GDALDataType GdalType = mergetiff::DatatypeConversion::primitiveToGdal<T>();
+
+	// Get GTiff Driver
+	const char* DriverName = "GTiff";
+	GDALDriver* GTiffDriver = GetGDALDriverManager()->GetDriverByName(DriverName);
+	check(GTiffDriver)
+
+	// Create dataset
+	GDALDataset* SavedDataset = GTiffDriver->Create(
+		TCHAR_TO_UTF8(*OutFileName),
+		XSize,
+		YSize,
+		ChannelNum,
+		GdalType,
+		nullptr
+		);
+
+	// Copy data over to dataset
+	const mergetiff::RasterData<T> RasterData(
+		RawData.GetData(),
+		ChannelNum,
+		YSize,
+		XSize,
+		true
+		);
+
+	GDALDatasetRef SavedDatasetRef(SavedDataset);
+	
+	mergetiff::RasterIO::writeDataset(SavedDatasetRef, RasterData);
+	
+	return SavedDatasetRef;
 }
 
 template <typename T>

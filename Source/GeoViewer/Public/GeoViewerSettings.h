@@ -17,4 +17,7 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category="API Keys", DisplayName="Google Maps API Key")
 	FString GoogleMapsAPIKey;
+
+	UPROPERTY(Config, EditAnywhere, Category="API Keys", DisplayName="Mapbox API Key")
+	FString MapboxAPIKey;
 };

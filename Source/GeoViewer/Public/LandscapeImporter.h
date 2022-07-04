@@ -52,7 +52,7 @@ private:
 	
 	TArray<TArray<uint8>> WeightMaps;
 
-	/** Used to prevent the object being deleted */
+	/** Used to prevent the object being deleted until the tile has loaded. */
 	TSharedPtr<FGeoTileAPI> CachedTileAPI;
 	
 	/** The offset from the origin in quads */

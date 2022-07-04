@@ -24,7 +24,7 @@ void FOverlayTileGenerator::GenerateTile(AMapOverlayActor* InParentActor,
 		TileLoader = MakeShared<FBingMapsAPI>(InEdModeConfig, ReferencingSystem);
 	} else
 	{
-		TileLoader = MakeShared<FGoogleMapsAPI>(InEdModeConfig, ReferencingSystem);	
+		TileLoader = MakeShared<FGoogleMapsAPI>(InEdModeConfig, ReferencingSystem);
 	}
 	
 	TileLoader->OnComplete.BindRaw(this, &FOverlayTileGenerator::OnTileFinishedLoading);
