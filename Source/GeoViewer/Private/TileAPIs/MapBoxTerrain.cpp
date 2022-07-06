@@ -189,8 +189,8 @@ GDALDataset* FMapBoxTerrain::ConvertFromRGB(GDALDatasetRef& MapboxDataset)
 	const int XSize = MapboxDataset->GetRasterXSize();
 	const int ChannelNum = MapboxDataset->GetRasterCount();
 		
-	TArray<int16> HeightDataInt16;
-	HeightDataInt16.Init(0, HeightDataInt8.Num() / ChannelNum);
+	TArray<float> HeightDataFloat;
+	HeightDataFloat.Init(0, HeightDataInt8.Num() / ChannelNum);
 	for (int i = 0; i < HeightDataInt8.Num(); i += ChannelNum)
 	{
 		// Convert from 3 channels down to one
@@ -198,13 +198,13 @@ GDALDataset* FMapBoxTerrain::ConvertFromRGB(GDALDatasetRef& MapboxDataset)
 		const uint8 R = HeightDataInt8[i];
 		const uint8 G = HeightDataInt8[i + 1];
 		const uint8 B = HeightDataInt8[i + 2];
-		HeightDataInt16[i / ChannelNum] = -10000 + ((R * 256 * 256 + (G * 256) + B) * 0.1);
+		HeightDataFloat[i / ChannelNum] = -10000 + ((R * 256 * 256 + (G * 256) + B) * 0.1);
 	}
 
 	// Save converted height data to a new dataset
 	FString FileName;
 	GDALDataset* Result =
-		FGDALWarp::CreateGTiffDataset(HeightDataInt16, XSize, XSize, FileName, ERGBFormat::Gray).Release();
+		FGDALWarp::CreateGTiffDataset(HeightDataFloat, XSize, XSize, FileName, ERGBFormat::Gray).Release();
 
 	GTiffPaths.Add(FileName);
 	

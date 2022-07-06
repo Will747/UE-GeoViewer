@@ -111,14 +111,31 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 		TArray<uint16> HeightData;
 		
 		// Read height data from dataset
-		TArray<int16> HeightDataSigned;
-		FGDALWarp::GetRawImage(DatasetRef, HeightDataSigned);
+		const GDALDataType DataType = Dataset->GetRasterBand(1)->GetRasterDataType();
 
-		// Convert and resize height data to uint16
-		HeightData.Init(0, HeightDataSigned.Num());
-		for (int i = 0; i < HeightDataSigned.Num(); i++)
+		// Mapbox datasets use floats and HGT uses int16
+		if (DataType == GDT_Float32)
 		{
-			HeightData[i] = SeaLevelOffset + (HeightDataSigned[i] * HeightScale);
+			TArray<float> HeightDataFloat;
+			FGDALWarp::GetRawImage(DatasetRef, HeightDataFloat);
+
+			// Convert and resize height data to uint16
+			HeightData.Init(0, HeightDataFloat.Num());
+			for (int i = 0; i < HeightDataFloat.Num(); i++)
+			{
+				HeightData[i] = SeaLevelOffset + (HeightDataFloat[i] * HeightScale);
+			}
+		} else
+		{
+			TArray<int16> HeightDataSigned;
+			FGDALWarp::GetRawImage(DatasetRef, HeightDataSigned);
+
+			// Convert and resize height data to uint16
+			HeightData.Init(0, HeightDataSigned.Num());
+			for (int i = 0; i < HeightDataSigned.Num(); i++)
+			{
+				HeightData[i] = SeaLevelOffset + (HeightDataSigned[i] * HeightScale);
+			}
 		}
 
 		// Tile size in pixels
