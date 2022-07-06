@@ -72,6 +72,20 @@ enum class ELandscapeFormat : uint8
 	Mapbox
 };
 
+/** Resampling algorithms available with GDAL. */
+UENUM()
+enum class ESamplingAlgorithm : uint8
+{
+	Nearest,
+	Average,
+	Rms UMETA(DisplayName = "Root Mean Square (rms)"),
+	Bilinear,
+	Cubic,
+	CubicSpline,
+	Lanczos,
+	Mode
+};
+
 /**
  * The config shown on the editor mode panel
  */
@@ -108,6 +122,9 @@ public:
 
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape")
 	ELandscapeFormat LandscapeFormat;
+
+	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape")
+	ESamplingAlgorithm LandscapeResamplingAlgorithm = ESamplingAlgorithm::Lanczos;
 
 	/** Number of quads in a section. This can be: 7, 15, 31, 63, 127, 255 (63 = 63x63) */
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Landscape", meta = (UIMin=7, UIMax=255))

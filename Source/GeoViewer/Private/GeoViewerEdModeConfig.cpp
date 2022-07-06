@@ -30,6 +30,10 @@ void UGeoViewerEdModeConfig::Load()
 	int32 LandscapeFormatInt = (int32)ELandscapeFormat::STRM;
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("LandscapeFormat"), LandscapeFormatInt, GEditorSettingsIni);
 	LandscapeFormat = (ELandscapeFormat)LandscapeFormatInt;
+
+	int32 LandscapeReSamplingAlgorithmInt = (int32)ESamplingAlgorithm::Lanczos;
+	GConfig->GetInt(TEXT("GeoViewer"), TEXT("LandscapeAlgorithm"), LandscapeReSamplingAlgorithmInt, GEditorSettingsIni);
+	LandscapeResamplingAlgorithm = (ESamplingAlgorithm)LandscapeReSamplingAlgorithmInt;
 	
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("LandscapeSectionSize"), SectionSize, GEditorPerProjectIni);
 	GConfig->GetInt(TEXT("GeoViewer"), TEXT("NumberOfComponents"), NumberOfComponents, GEditorPerProjectIni);
@@ -61,6 +65,7 @@ void UGeoViewerEdModeConfig::Save()
 
 	// Landscape
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("LandscapeFormat"), (int32)LandscapeFormat, GEditorSettingsIni);
+	GConfig->SetInt(TEXT("GeoViewer"), TEXT("LandscapeAlgorithm"), (int32)LandscapeResamplingAlgorithm, GEditorSettingsIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("LandscapeSectionSize"), SectionSize, GEditorPerProjectIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("NumberOfComponents"), NumberOfComponents, GEditorPerProjectIni);
 	GConfig->SetInt(TEXT("GeoViewer"), TEXT("SectionsPerComponent"), SectionsPerComponent, GEditorPerProjectIni);

@@ -156,7 +156,8 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 		GDALDatasetRef ResizedHeightDataset = FGDALWarp::ResizeDataset(
 			HeightDataset.Get(),
 			FIntVector2(TileLength, TileLength),
-			DatasetFilePath
+			DatasetFilePath,
+			EdModeConfig->LandscapeResamplingAlgorithm
 			);
 		FilesToDelete.Add(DatasetFilePath);
 
@@ -417,7 +418,11 @@ void FLandscapeImporter::ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjec
 
 			FString ResizedDatasetPath;
 			GDALDatasetRef ResizedDataset =
-				FGDALWarp::ResizeDataset(CroppedDataset.Get(), RequiredResolution, ResizedDatasetPath);
+				FGDALWarp::ResizeDataset(
+					CroppedDataset.Get(),
+					RequiredResolution,
+					ResizedDatasetPath,
+					EdModeConfig->LandscapeResamplingAlgorithm);
 			DatasetPaths.Add(ResizedDatasetPath);
 
 			TArray<uint8> CompletedLayer;

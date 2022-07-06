@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "IImageWrapper.h"
 #include "GDALSmartPointers.h"
+#include "GeoViewerEdModeConfig.h"
 
 /**
  * Class containing static functions used to help warp an image between
@@ -52,12 +53,14 @@ public:
 	 * @param SrcDataset Dataset that needs resizing.
 	 * @param Resolution Dimensions the dataset should be converted to.
 	 * @param OutFileName Path to the resized dataset.
+	 * @param Algorithm Resampling algorithm.
 	 * @return Resized dataset.
 	 */
 	static GDALDatasetRef ResizeDataset(
 		GDALDataset* SrcDataset,
 		FIntVector2 Resolution,
-		FString& OutFileName
+		FString& OutFileName,
+		ESamplingAlgorithm Algorithm = ESamplingAlgorithm::Lanczos
 	);
 	
 	/**
@@ -155,6 +158,9 @@ private:
 		FString& OutFileName
 		);
 
+	/** Returns the sampling algorithm as a string */
+	static FString GetSamplingParameter(ESamplingAlgorithm Algorithm);
+	
 	static FString ConvertToFString(char* Text);
 };
 

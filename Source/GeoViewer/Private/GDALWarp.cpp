@@ -82,14 +82,18 @@ GDALDatasetRef FGDALWarp::MergeDatasets(TArray<GDALDataset*>& Datasets)
 	return GDALDatasetRef(MergedDataset);
 }
 
-GDALDatasetRef FGDALWarp::ResizeDataset(GDALDataset* SrcDataset, const FIntVector2 Resolution, FString& OutFileName)
+GDALDatasetRef FGDALWarp::ResizeDataset(
+	GDALDataset* SrcDataset,
+	const FIntVector2 Resolution,
+	FString& OutFileName,
+	const ESamplingAlgorithm Algorithm /*=ESamplingAlgorithm::Lanczos*/)
 {
 	TArray<FString> TranslateParameters;
 	TranslateParameters.Add("-outsize");
 	TranslateParameters.Add(FString::FromInt(Resolution.X));
 	TranslateParameters.Add(FString::FromInt(Resolution.Y));
 	TranslateParameters.Add("-r");
-	TranslateParameters.Add("cubicspline");
+	TranslateParameters.Add(GetSamplingParameter(Algorithm));
 	
 	return TranslateDataset(SrcDataset, TranslateParameters, OutFileName);
 }
@@ -210,4 +214,19 @@ GDALDatasetRef FGDALWarp::TranslateDataset(
 	GDALTranslateOptionsFree(Options);
 
 	return GDALDatasetRef(TranslatedDataset);
+}
+
+FString FGDALWarp::GetSamplingParameter(ESamplingAlgorithm Algorithm)
+{
+	switch (Algorithm)
+	{
+	case ESamplingAlgorithm::Nearest: return "nearest";
+	case ESamplingAlgorithm::Average: return "average";
+	case ESamplingAlgorithm::Rms: return "rms";
+	case ESamplingAlgorithm::Bilinear: return "bilinear";
+	case ESamplingAlgorithm::Cubic: return "cubic";
+	case ESamplingAlgorithm::CubicSpline: return "cubicspline";
+	case ESamplingAlgorithm::Mode: return "mode";
+	default: return "lanczos";
+	}
 }
