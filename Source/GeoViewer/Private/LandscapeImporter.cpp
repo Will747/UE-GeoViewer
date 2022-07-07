@@ -59,8 +59,10 @@ void FLandscapeImporter::LoadTile(FVector LandscapePosition)
 		
 		// Add an additional 500 meters to be cropped off later on
 		// This should make the joins between landscape actors less noticeable
-		const FVector TopCornerTile = TopCorner + (500 * 100);
-		const FVector BottomCornerTile = BottomCorner - (500 * 100);
+		FVector TopCornerTile = TopCorner + (500 * 100);
+		FVector BottomCornerTile = BottomCorner - (500 * 100);
+		TopCornerTile.Z = 0;
+		BottomCornerTile.Z = 0;
 		
 		FProjectedBounds TileBounds;
 		ReferenceSystem->EngineToProjected(TopCornerTile, TileBounds.TopLeft);
@@ -199,9 +201,9 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 	// Prepare weight maps for landscape
 	TArray<FLandscapeImportLayerInfo> LandscapeImportLayers;
 	
-	if (EdModeConfig->Layers.Num() <= WeightMaps.Num())
+	if (EdModeConfig->Layers.Num() >= WeightMaps.Num())
 	{
-		for (int LayerIdx = 0; LayerIdx < EdModeConfig->Layers.Num(); LayerIdx++)
+		for (int LayerIdx = 0; LayerIdx < WeightMaps.Num(); LayerIdx++)
 		{
 			FLandscapeImportLayerInfo LayerInfo = EdModeConfig->Layers[LayerIdx];
 
@@ -225,6 +227,12 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 				}
 			}
 		}	
+	} else
+	{
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			LOCTEXT("NotEnoughMaterialLayers", "There are more weight map layers than there are material layers"));
+		return;
 	}
 	
 	// Create Landscape Proxy
