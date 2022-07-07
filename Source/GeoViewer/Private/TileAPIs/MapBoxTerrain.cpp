@@ -73,6 +73,7 @@ void FMapBoxTerrain::LoadTile(const FProjectedBounds InTileBounds)
 					GDALDatasetRef Dataset(
 						(GDALDataset*)GDALOpen(TCHAR_TO_UTF8(*(FilePath)), GA_ReadOnly));
 					DatasetsToMerge.Add(ConvertFromRGB(Dataset));
+					GDALClose(Dataset.Release());
 				} else
 				{
 					// Setup tile downloader
@@ -113,6 +114,8 @@ void FMapBoxTerrain::OnSegmentCompleted(const FTileDownloader* TileDownloader)
 
 		GDALDataset* DatasetToMerge = ConvertFromRGB(MapBoxDataset);
 		DatasetsToMerge.Add(DatasetToMerge);
+
+		GDALClose(MapBoxDataset.Release());
 		
 		CheckComplete();
 	}
