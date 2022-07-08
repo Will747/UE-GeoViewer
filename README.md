@@ -1,6 +1,6 @@
 # UE-GeoViewer
 ### This plugin is still being worked on and not complete.
-A plugin for Unreal Engine that overlays real world maps into the world making it easier to precisely place items in the world and imports real world terrain. 
+A plugin for Unreal Engine that overlays real world maps into the editor making it easier to precisely place items in the world and imports real world terrain. 
 
 ![Placing A tree with the overlay active](docs/UE5Overlay.png)
 
@@ -13,36 +13,56 @@ Using the built in GeoReferencing plugin means the maps can be used on many diff
 - Contains many options such as overlay type, resolution, max number of tiles/decals, decal size.
 - Stores settings and API keys in the Editor.ini file.
 - Displays current geographical coordinates.
-- Imports terrain data in the STRM HGT format.
+- Imports terrain data in the STRM HGT format or from Mapbox.
+- Supports importing GeoTiff landscape weight maps from [Land Cover Mapping](https://github.com/microsoft/landcover)
 
 ## Requirements
 - UE5 with the GeoReferencing plugin enabled.
 
 ## Installation
-1. Download or Clone this repository.
-2. Copy the folder 'GeoViewer' into the plugins folder of the project.
+1. Create a new folder in the plugins folder of the project named 'GeoViewer'.
+2. Download or Clone this repository so that the files are in the 'GeoViewer' folder just created.
 3. Launch the project, before it starts it should come up with a warning about missing modules and the question, "Would you like to rebuild them now?". Select 'Yes' to this and the plugin should get compiled. This may take a few minutes.
-4. Afterwards the editor should launch as normal, and the plugins should be installed.
+4. Afterwards the editor should launch as normal, and the plugin should be installed.
 
 ## Usage
 To get started open the 'Geo Viewer' editor mode. This will add two new actors to the world. The first is named 'WorldReferenceSystem', this is used to convert between engine coordinates and geographical coordinates. The second is named 'MapOverlayActor' this will hold the decals that get added when the overlay is active.
 
+### World Reference System
 To setup the world origin and projection select the 'WorldReferenceSystem' actor in the details panel some options should appear:
-- Planet Shape - At the moment the overlay only supports 'Flat Planet'
+- Planet Shape - At the moment only 'Flat Planet' is supported.
 - Projected CRS - This can be changed to a suitable projection for the area the world represents to minimise distortion. [EPSG.io](https://epsg.io/) is a useful website when looking for a CRS to use.
 - Geographic CRS - This should be left as 'EPSG:4326'.
-- Origin Location in Projected - Should be set to false, the origin must be in Longitude and Latitude.
-- Origin Latitude and Origin Longitude - This can be set based on the location the map is based.
+- Origin Location - This can be in either projected or geographic coordinates.
 
 ![World Overlay System Details Panel](docs/WorldReferenceSystem.png)
 
+### API Keys
+All the API keys can be set in the 'Editor Preferences' window under 'Plugins->Geo Viewer'.
+- Bing Maps API Key - Used by the overlay when in Bing Maps mode. A key can be created on the [Bing Maps Portal](https://www.bingmapsportal.com/).
+- Google Maps API Key - Used by the overlay when in Google Maps mode. A key can be created through the [Google Cloud Console](https://console.cloud.google.com/) for the 'Maps Static API'.
+- Mapbox API Key - Used when importing terrain data. A key can be obtained by creating a [Mapbox account](https://www.mapbox.com/).
+
+![Editor Preferences Window](docs/EditorPreferencesWindow.png)
+
 ### Overlay
-Then the API keys need adding for either Google or Bing maps, these appear in the Geo Viewer editor mode panel when 'Show API Key' is set to true. The rest of the settings should be fine left with the default values.
-'Overlay System' can be changed to select which API to use.
+Other than API keys all settings for the overlay are located in the editor mode panel. Most settings should be fine left with the default values.
+'Overlay System' can be changed to select between Google Maps and Bing Maps.
 
 To activate the overlay, press the 'Activate Overlay' button at the top of the panel. This button acts as a toggle so pressing it again will deactivate the overlay.
 
 ![Bing Maps in 'Canvas Dark' mode](docs/BingCanvasDarkMode.png)
 
 ### Terrain
-Currently elevation data in the HGT STRM format can be imported. All '.hgt' files should be placed in `Resources\Terrain\HGT`. Then in the editor there is a 'Load Terrain' button at the top of the GeoViewer editor panel. This will create landscape tiles based on the current geographic position in the viewport. Landscape tiles can be added gradually as the world gets created, but the '.hgt' files must keep their original filename which relates to their geographic position e.g. N00W000.hgt
+Digital elevation data can be imported through Mapbox or the HGT STRM format. All '.hgt' files should be placed in `Resources\Terrain\HGT`. Then in the editor there is a 'Load Terrain' button at the top of the GeoViewer editor panel. This will create landscape tiles based on the current geographic position in the viewport. Landscape tiles can be added gradually as the world gets created, but the '.hgt' files must keep their original filename which relates to their geographic position e.g. N00W000.hgt
+
+### Weight Maps
+Weight maps can be imported through GeoTiff files generated by [Land Cover Mapping](https://github.com/microsoft/landcover) this uses satalite imagery to predict what the type of ground surface.
+
+After clicking the 'Load Terrain' button a dialog will open (Providing a landscape material was set) with options to select the GeoTiff weight map file. Any GeoTiff files selected should cover part of the area listed on the right side of the window. To make this easier there is a 'Save landscape GeoJson file' button, pressing this will open a window to save a GeoJson file which can then be imported into [Land Cover Mapping](https://github.com/microsoft/landcover) to more easily export the correct section of land.
+
+![Weight Map Dialog](docs/WeightMapDlg.png)
+
+After all GeoTiff weight maps have been selected, press the 'continue' button and this will crop and merge the weight maps to the correct size before adding them to the landscape actor.
+
+![Weight Map Landscape](docs/WeightMaps.png)
