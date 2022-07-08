@@ -78,13 +78,29 @@ void UGeoViewerEdModeConfig::PostEditChangeProperty(FPropertyChangedEvent& Prope
 {
 	UObject::PostEditChangeProperty(PropertyChangedEvent);
 
-	// Make the overlay update with the new settings
-	if (ParentMode && PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
+	// Make the overlay reset if a main setting has changed.
+	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
+	const bool bMainOverlaySettingChanged =
+		PropertyName == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, OverlaySystem) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, TileSize) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, MaxNumberOfTiles) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(FGoogleMapsOverlayConfig, Type) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(FGoogleMapsOverlayConfig, TileResolution) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(FGoogleMapsOverlayConfig, ZoomLevel) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(FBingMapsOverlayConfig, Type) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(FBingMapsOverlayConfig, TileResolution) ||
+		PropertyName == GET_MEMBER_NAME_CHECKED(FBingMapsOverlayConfig, ZoomLevel);
+		
+	if (bMainOverlaySettingChanged && PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
 	{
 		ParentMode->ResetOverlay();
 	}
 
-	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, LandscapeMaterial))
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, Opacity))
+	{
+		ParentMode->UpdateOverlayOpacity();
+	}
+	else if (PropertyName == GET_MEMBER_NAME_CHECKED(UGeoViewerEdModeConfig, LandscapeMaterial))
 	{
 		RefreshLandscapeLayers();
 	}

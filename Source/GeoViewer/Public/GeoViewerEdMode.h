@@ -31,6 +31,9 @@ public:
 
 	/** Resets the overlay when a change has been made to the config */
 	void ResetOverlay();
+
+	/** Updates the opacity of the overlay. */
+	void UpdateOverlayOpacity();
 	
 	/** Gets the overlay actor from the world */
 	AMapOverlayActor* GetOverlayActor();

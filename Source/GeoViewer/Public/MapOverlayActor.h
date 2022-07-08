@@ -53,6 +53,9 @@ public:
 	/** Adds a new decal to the world based on the dataset */
 	void AddOverlayTile(GDALDataset* Dataset, FString Key);
 
+	/** Updates all materials with the opacity from the EdModeConfig. */
+	void UpdateOpacity();
+
 	/** The default material used by decals */
 	UPROPERTY(EditAnywhere)
 	UMaterial* LoadingMaterial;

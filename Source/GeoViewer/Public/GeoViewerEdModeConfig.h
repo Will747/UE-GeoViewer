@@ -18,11 +18,11 @@ struct FGoogleMapsOverlayConfig
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, NonTransactional)
+	UPROPERTY(EditAnywhere, AdvancedDisplay, NonTransactional)
 	int ZoomLevel = 19;
 
 	/** Pixel size of each tile */
-	UPROPERTY(EditAnywhere, NonTransactional, meta = (UIMin=300, UIMax=640))
+	UPROPERTY(EditAnywhere, AdvancedDisplay, NonTransactional, meta = (UIMin=300, UIMax=640))
 	int TileResolution = 640;
 	
 	/** The type of map used */
@@ -46,11 +46,11 @@ struct FBingMapsOverlayConfig
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, NonTransactional)
+	UPROPERTY(EditAnywhere, AdvancedDisplay, NonTransactional)
 	int ZoomLevel = 19;
 
 	/** Pixel size of each tile */
-	UPROPERTY(EditAnywhere, NonTransactional)
+	UPROPERTY(EditAnywhere, AdvancedDisplay, NonTransactional)
 	int TileResolution = 1500;
 
 	/** The type of map used */
@@ -103,18 +103,17 @@ public:
 
 	/** The maximum number of decals being used at one time */
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Overlay", meta = (UIMin=1, UIMax=50))
-	int MaxNumberOfTiles = 9;
-
-	//TODO: Doesn't work at the moment
-	/** Opacity of the decal material where 0 is not transparent and 1 is fully transparent */
+	int MaxNumberOfTiles = 20;
+	
+	/** Opacity of the decal material where 0 is transparent and 1 is not transparent */
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Overlay", meta = (UIMin=0, UIMax=1))
-	float Opacity = 0;
+	float Opacity = 0.9;
 	
 	/** The API to get the imagery from */
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Overlay")
 	EOverlayMapSystem OverlaySystem;
 	
-	UPROPERTY(EditAnywhere, NonTransactional, Category = "Bing API Config", meta = (ShowOnlyInnerProperties))
+	UPROPERTY(EditAnywhere, NonTransactional , Category = "Bing API Config", meta = (ShowOnlyInnerProperties))
 	FBingMapsOverlayConfig BingMaps;
 
 	UPROPERTY(EditAnywhere, NonTransactional, Category = "Google API Config", meta = (ShowOnlyInnerProperties))

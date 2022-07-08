@@ -89,6 +89,14 @@ void FGeoViewerEdMode::ResetOverlay()
 	}
 }
 
+void FGeoViewerEdMode::UpdateOverlayOpacity()
+{
+	if (AMapOverlayActor* CurrentOverlayActor = GetOverlayActor())
+	{
+		CurrentOverlayActor->UpdateOpacity();
+	}
+}
+
 AMapOverlayActor* FGeoViewerEdMode::GetOverlayActor()
 {
 	if (!OverlayActor.IsValid())

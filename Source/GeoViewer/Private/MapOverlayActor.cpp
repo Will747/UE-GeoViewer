@@ -67,26 +67,24 @@ void AMapOverlayActor::Tick(float DeltaTime)
 		
 		// Calculate the tile position/index between the origin and user
 		const int TileSize = EdModeConfig->TileSize;
-		const int X = UserPosition.X / TileSize;
-		const int Y = UserPosition.Y / TileSize;
+		const int X = FMath::Floor(UserPosition.X / TileSize);
+		const int Y = FMath::Floor(UserPosition.Y / TileSize);
 		
 		// Form a string and check that tile doesn't already exist
 		const FString Key =  FString::FromInt(X) + "," + FString::FromInt(Y);
 		if (!Tiles.Contains(Key))
 		{
 			// Calculate UE coordinates for corner positions of the tile
-			const float HalfTileSize = TileSize / 2;
-			const FVector Center = FVector(X * TileSize, Y * TileSize, 0);
-			const FVector Corner1 = FVector(HalfTileSize, HalfTileSize, 0) + Center;
-			const FVector Corner2 = FVector(-HalfTileSize, -HalfTileSize, 0) + Center;
+			const FVector Corner1 = FVector(X * TileSize, Y * TileSize, 0);
+			const FVector Corner2 = FVector(TileSize, TileSize, 0) + Corner1;
 
 			// Make sure all the components aren't still loading before adding another tile
 			const UOverlayTileComponent* NextTileComponent = GetNextComponent();
 			if ((NextTileComponent && !NextTileComponent->IsLoadingTile()) || NextTileComponent == nullptr)
 			{
 				LoadNewTile(
-				Corner1,
 				Corner2,
+				Corner1,
 				Key);
 			}
 		}
@@ -201,8 +199,23 @@ void AMapOverlayActor::AddOverlayTile(GDALDataset* Dataset, FString Key)
 		TileComponent->SetDataset(Dataset, TileGenerator, LoadingMaterial);
 		TileComponent->RegisterComponent();
 		TileComponent->Key = Key;
+		TileComponent->SetOpacity(EdModeConfig->Opacity);
 		WebDecals[DecalQueueIdx] = TileComponent;
 		IncrementQueueIndex();
+	}
+}
+
+void AMapOverlayActor::UpdateOpacity()
+{
+	if (EdModeConfig.IsValid())
+	{
+		for (const UOverlayTileComponent* TileComponent : WebDecals)
+		{
+			if (TileComponent)
+			{
+				TileComponent->SetOpacity(EdModeConfig->Opacity);
+			}
+		}
 	}
 }
 

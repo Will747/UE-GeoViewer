@@ -105,6 +105,12 @@ bool UOverlayTileComponent::IsLoadingTile() const
 	return !Texture && TextureWorker;
 }
 
+void UOverlayTileComponent::SetOpacity(const float Opacity) const
+{
+	UMaterialInstanceDynamic* DynamicMaterial = Cast<UMaterialInstanceDynamic>(DecalMaterial);
+	DynamicMaterial->SetScalarParameterValue("Opacity", Opacity);
+}
+
 void UOverlayTileComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                           FActorComponentTickFunction* ThisTickFunction)
 {
@@ -137,5 +143,5 @@ void UOverlayTileComponent::SetTextureMaterial() const
 {
 	// Update material with new texture
 	UMaterialInstanceDynamic* DynamicMaterial = Cast<UMaterialInstanceDynamic>(DecalMaterial);
-	DynamicMaterial->SetTextureParameterValue(FName("MapTexture"), Texture);
+	DynamicMaterial->SetTextureParameterValue("MapTexture", Texture);
 }

@@ -38,10 +38,13 @@ public:
 	/** True when the image is being extracted from the GDALDataset */
 	bool IsLoadingTile() const;
 
-	/** Used to link this component to a tile generator */
+	/** Changes the opacity of the decal material. */
+	void SetOpacity(float Opacity) const;
+
+	/** Used to link this component to a tile generator. */
 	FString Key;
 private:
-	/** Sets the texture parameter on the decal material to the pointer 'Texture' */
+	/** Sets the texture parameter on the decal material to 'Texture'. */
 	void SetTextureMaterial() const;
 	
 	UPROPERTY()
