@@ -57,6 +57,14 @@ void FLandscapeImporter::LoadTile(FVector LandscapePosition)
 		AWorldReferenceSystem* ReferenceSystem = AWorldReferenceSystem::GetWorldReferenceSystem(World);
 		if (!ReferenceSystem) return;
 		
+		// Get weight maps
+		FProjectedBounds TileBounds;
+		ReferenceSystem->EngineToProjected(TopCorner, TileBounds.TopLeft);
+		ReferenceSystem->EngineToProjected(BottomCorner, TileBounds.BottomRight);
+		
+		WeightMaps.Empty();
+		ImportWeightMap(WeightMaps, TileBounds);
+
 		// Add an additional 500 meters to be cropped off later on
 		// This should make the joins between landscape actors less noticeable
 		FVector TopCornerTile = TopCorner + (500 * 100);
@@ -64,16 +72,12 @@ void FLandscapeImporter::LoadTile(FVector LandscapePosition)
 		TopCornerTile.Z = 0;
 		BottomCornerTile.Z = 0;
 		
-		FProjectedBounds TileBounds;
-		ReferenceSystem->EngineToProjected(TopCornerTile, TileBounds.TopLeft);
-		ReferenceSystem->EngineToProjected(BottomCornerTile, TileBounds.BottomRight);
+		FProjectedBounds ExtraTileBounds;
+		ReferenceSystem->EngineToProjected(TopCornerTile, ExtraTileBounds.TopLeft);
+		ReferenceSystem->EngineToProjected(BottomCornerTile, ExtraTileBounds.BottomRight);
 		
-		// Get weight maps
-		WeightMaps.Empty();
-		ImportWeightMap(WeightMaps, TileBounds);
-
 		const TSharedRef<FGeoTileAPI> TileAPI = GetTileAPI();
-		TileAPI->LoadTile(TileBounds);
+		TileAPI->LoadTile(ExtraTileBounds);
 		
 		CachedTileAPI = TileAPI;
 	}
