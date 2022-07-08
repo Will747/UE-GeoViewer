@@ -5,16 +5,19 @@ void AGeoViewerReferenceSystem::UpdateActorSettings(AWorldReferenceSystem* World
 {
 	ProjectedCRS = EPSGToString(InProjectedEPSG);
 
+	const FGeographicCoordinates GeoOrigin = WorldReferenceSystem->GetGeographicalOrigin();
+	
 	bOriginAtPlanetCenter = WorldReferenceSystem->bOriginAtPlanetCenter;
 	bOriginLocationInProjectedCRS = WorldReferenceSystem->bOriginLocationInProjectedCRS;
 	OriginLatitude = WorldReferenceSystem->OriginLatitude;
 	OriginLongitude = WorldReferenceSystem->OriginLongitude;
 	OriginAltitude = WorldReferenceSystem->OriginAltitude;
 
-	// TODO: These would need converting to the projection of this actor
-	OriginProjectedCoordinatesEasting = WorldReferenceSystem->OriginProjectedCoordinatesEasting;
-	OriginProjectedCoordinatesNorthing = WorldReferenceSystem->OriginProjectedCoordinatesNorthing;
-	OriginProjectedCoordinatesUp = WorldReferenceSystem->OriginProjectedCoordinatesUp;
+	FVector Origin;
+	GeographicToProjected(GeoOrigin, Origin);
+	OriginProjectedCoordinatesEasting = Origin.X;
+	OriginProjectedCoordinatesNorthing = Origin.Y;
+	OriginProjectedCoordinatesUp = Origin.Z;
 
 	ApplySettings();
 }
