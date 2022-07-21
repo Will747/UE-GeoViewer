@@ -1,42 +1,118 @@
+/*
+	THIS FILE WAS GENERATED AUTOMATICALLY BY CONAN-UE4CLI VERSION 0.0.38.
+	THIS BOILERPLATE CODE IS INTENDED FOR USE WITH UNREAL ENGINE VERSION 4.27 but modified to work
+	without CONAN-UE4CLI on UE5.
+*/
+using System;
 using System.IO;
 using UnrealBuildTool;
+using System.Collections.Generic;
 
 public class GDAL : ModuleRules
 {
-	public GDAL(ReadOnlyTargetRules Target) : base(Target)
+	//Returns the identifier string for the given target, which includes its platform, architecture (if specified), and debug CRT status
+	private string TargetIdentifier(ReadOnlyTargetRules target)
 	{
-		Type = ModuleType.External;
+		//Append the target's architecture to its platform name if an architecture was specified
+		string id = (target.Architecture != null && target.Architecture.Length > 0) ?
+			String.Format("{0}-{1}", target.Platform.ToString(), target.Architecture) :
+			target.Platform.ToString();
 		
-		var baseDir = Path.Combine(ModuleDirectory, "vcpkg-installed", "x64-windows-static-md");
-		var includeDir = Path.Combine(baseDir, "include");
-		var libDir = Path.Combine(baseDir, "lib");
-		var shareDir = Path.Combine(baseDir, "share");
-
+		//Append a debug suffix for Windows debug targets that actually use the debug CRT
+		bool isDebug = (target.Configuration == UnrealTargetConfiguration.Debug || target.Configuration == UnrealTargetConfiguration.DebugGame);
+		if (isDebug && target.bDebugBuildsActuallyUseDebugCRT) {
+			id += "-Debug";
+		}
+		
+		return id;
+	}
+	
+	//Determines if a target's platform is a Windows target platform
+	private bool IsWindows(ReadOnlyTargetRules target) {
+		return target.IsInPlatformGroup(UnrealPlatformGroup.Windows);
+	}
+	
+	//Determines if we have precomputed dependency data for the specified target and Engine version, and processes it if we do
+	private bool ProcessPrecomputedData(ReadOnlyTargetRules target, string stagingDir)
+	{
+		//Resolve the paths to the files and directories that will exist if we have precomputed data for the target
+		var targetDir = Path.Combine(ModuleDirectory, "precomputed", this.TargetIdentifier(target));
+		var includeDir = Path.Combine(targetDir, "include");
+		var libDir = Path.Combine(targetDir, "lib");
+		var binDir = Path.Combine(targetDir, "bin");
+		var dataDir = Path.Combine(targetDir, "data");
+		
+		//If any of the required files or directories do not exist then we do not have precomputed data
+		if (!Directory.Exists(includeDir) || !Directory.Exists(libDir) || !Directory.Exists(binDir) || !Directory.Exists(dataDir)) {
+			return false;
+		}
+		
 		//Add the precomputed include directory to our search paths
 		PublicIncludePaths.Add(includeDir);
 		
-		var libs = Directory.GetFiles(libDir, "*.lib");
+		//Link against all static library files (and import libraries for DLLs under Windows) in the lib directory
+		var libExtension = ((this.IsWindows(target)) ? ".lib" : ".a");
+		var libs = Directory.GetFiles(libDir, "*" + libExtension);
 		foreach(var lib in libs) {
 			PublicAdditionalLibraries.Add(lib);
 		}
-
+		
+		//Under non-Windows platforms, link against all shared library files in the lib directory
+		if (this.IsWindows(target) == false)
+		{
+			var sharedLibs = new List<string>();
+			sharedLibs.AddRange(Directory.GetFiles(libDir, "*.dylib"));
+			sharedLibs.AddRange(Directory.GetFiles(libDir, "*.so"));
+			foreach(var lib in sharedLibs) {
+				PublicAdditionalLibraries.Add(lib);
+			}
+		}
+		
+		//Ensure any shared libraries are staged alongside the binaries for the plugin
+		var searchDirs = new string[]{ binDir, libDir };
+		foreach (var dir in searchDirs)
+		{
+			var binaries = new List<string>();
+			binaries.AddRange(Directory.GetFiles(dir, "*.dll"));
+			binaries.AddRange(Directory.GetFiles(dir, "*.dylib"));
+			binaries.AddRange(Directory.GetFiles(dir, "*.so"));
+			foreach (var binary in binaries) {
+				RuntimeDependencies.Add(Path.Combine("$(BinaryOutputDir)", Path.GetFileName(binary)), binary, StagedFileType.NonUFS);
+			}
+		}
+		
 		//Link against any Unreal Engine modules for bundled third-party libraries
 		PrivateDependencyModuleNames.AddRange(
 			new string[] {
 				"libcurl",
-				"zlib"
+        		"UElibPNG",
+                "zlib"
 			}
 		);
 		
 		//Copy any data files needed by the package into our staging directory
+		var files = Directory.GetFiles(dataDir, "*", SearchOption.AllDirectories);
+		foreach(var file in files) {
+			RuntimeDependencies.Add(Path.Combine(stagingDir, Path.GetFileName(file)), file, StagedFileType.NonUFS);
+		}
+		
+		return true;
+	}
+	
+	public GDAL(ReadOnlyTargetRules Target) : base(Target)
+	{
+		Type = ModuleType.External;
+		
+		//Ensure our staging directory exists prior to copying any dependency data files into it
 		string stagingDir = Path.Combine("$(ProjectDir)", "Binaries", "Data", "GDAL");
 		if (!Directory.Exists(stagingDir)) {
 			Directory.CreateDirectory(stagingDir);
 		}
 		
-		var files = Directory.GetFiles(Path.Combine(shareDir, "gdal"), "*", SearchOption.AllDirectories);
-		foreach(var file in files) {
-			RuntimeDependencies.Add(Path.Combine(stagingDir, Path.GetFileName(file)), file, StagedFileType.NonUFS);
+		//Determine if we have precomputed dependency data for the target that is being built
+		if (ProcessPrecomputedData(Target, stagingDir) == false)
+		{
+			throw new Exception("Missing precomputed data!");
 		}
 	}
 }

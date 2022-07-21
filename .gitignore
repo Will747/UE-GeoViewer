@@ -78,4 +78,6 @@ Resources/CachedTiles/*
 Resources/Terrain/*
 
 # Include Third-party binaries
-Source/ThirdParty/GDAL/*/
+!Source/ThirdParty/GDAL/precomputed/Win64/bin/*
+!Source/ThirdParty/GDAL/precomputed/Win64/lib/*
+
