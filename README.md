@@ -22,9 +22,8 @@ Using the built in GeoReferencing plugin means the maps can be used on many diff
 ## Installation
 1. Create a new folder in the plugins folder of the project named 'GeoViewer'.
 2. Download or Clone this repository so that the files are in the 'GeoViewer' folder just created.
-3. Download and compile GDAL by running the batch file located at 'Source/ThirdParty/GDAL/BuildGDAL.bat'. This will use a dependancy manager called vcpkg to install the dependancies.
-4. Launch the project, before it starts it should come up with a warning about missing modules and the question, "Would you like to rebuild them now?". Select 'Yes' to this and the plugin should get compiled. This may take a few minutes.
-5. Afterwards the editor should launch as normal, and the plugin should be installed.
+3. Launch the project, before it starts it should come up with a warning about missing modules and the question, "Would you like to rebuild them now?". Select 'Yes' to this and the plugin should get compiled. This may take a few minutes.
+4. Afterwards the editor should launch as normal, and the plugin should be installed.
 
 ## Usage
 To get started open the 'Geo Viewer' editor mode. This will add two new actors to the world. The first is named 'WorldReferenceSystem', this is used to convert between engine coordinates and geographical coordinates. The second is named 'MapOverlayActor' this will hold the decals that get added when the overlay is active.
@@ -67,3 +66,14 @@ After clicking the 'Load Terrain' button a dialog will open (Providing a landsca
 After all GeoTiff weight maps have been selected, press the 'continue' button and this will crop and merge the weight maps to the correct size before adding them to the landscape actor.
 
 ![Weight Map Landscape](docs/WeightMaps.png)
+
+## License
+This repository is lisenced under the [MIT License](LICENSE.txt).
+
+Binary versions of some third-party libraries are included in this repository as they were initially built using the [conan-ue4cli](https://github.com/adamrehn/conan-ue4cli) but due to the lack of support for UE5, this can no longer be used to compile the binaries. So as a tempory solution the binaries built against UE4.27 are included in this repository along with a Build.cs file which has been modified to work with UE5.
+
+The following third-party libraries used in this repository are covered by their respective licenses:
+- [GDAL](https://gdal.org/) ([X/MIT License](https://github.com/OSGeo/gdal/blob/master/LICENSE.TXT))
+- [GEOS](https://libgeos.org/) ([GNU LGPL v2.1](https://github.com/libgeos/geos/blob/master/COPYING))
+- [PROJ](https://proj.org/) ([X/MIT License](https://github.com/OSGeo/PROJ/blob/master/COPYING))
+- [mergetiff](https://github.com/adamrehn/mergetiff-cxx) ([MIT License](https://github.com/adamrehn/mergetiff-cxx/blob/master/LICENSE))
