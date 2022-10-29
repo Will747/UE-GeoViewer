@@ -71,14 +71,9 @@ bool FGeoViewerEdMode::UsesToolkits() const
 	return true;
 }
 
-void FGeoViewerEdMode::LoadTerrainAroundUser()
+void FGeoViewerEdMode::LoadTerrainAroundUser(const bool bLoadManyTiles/* = false*/) const
 {
-	// Find the world position of the viewport
-	const FViewportCursorLocation ViewportCursor =
-		GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
-	const FVector UserPosition = ViewportCursor.GetOrigin();
-	
-	LandscapeImporter->LoadTile(UserPosition);
+	LandscapeImporter->LoadTile(GetUserPosition(), bLoadManyTiles);
 }
 
 void FGeoViewerEdMode::ResetOverlay()
@@ -118,6 +113,13 @@ AMapOverlayActor* FGeoViewerEdMode::GetOverlayActor()
 	}
 
 	return OverlayActor.Get();
+}
+
+FVector FGeoViewerEdMode::GetUserPosition()
+{
+	const FViewportCursorLocation ViewportCursor =
+		GCurrentLevelEditingViewportClient->GetCursorWorldLocationFromMousePos();
+	return ViewportCursor.GetOrigin();
 }
 
 ALandscape* FGeoViewerEdMode::GetLandscape() const

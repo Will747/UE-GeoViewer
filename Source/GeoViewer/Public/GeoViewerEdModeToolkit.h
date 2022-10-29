@@ -32,6 +32,9 @@ private:
 	/** Loads landscape tile around user. */
 	FReply OnLoadTerrainButtonPressed();
 
+	/** Loads many landscape tiles around the user. */
+	FReply OnBulkLoadTerrainButtonPressed();
+
 	FText GetOverlayButtonText() const;
 
 	/** Activates or deactivates the overlay. */

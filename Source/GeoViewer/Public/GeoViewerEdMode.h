@@ -27,7 +27,8 @@ public:
 	virtual bool UsesToolkits() const override;
 	// End of FEdMode interface
 
-	void LoadTerrainAroundUser();
+	/** Loads landscape actors around the user */
+	void LoadTerrainAroundUser(bool bLoadManyTiles = false) const;
 
 	/** Resets the overlay when a change has been made to the config */
 	void ResetOverlay();
@@ -39,6 +40,9 @@ public:
 	AMapOverlayActor* GetOverlayActor();
 
 private:
+	/** Returns the current user position in the world */
+	static FVector GetUserPosition();
+	
 	/** Gets the landscape actor in current world */
 	ALandscape* GetLandscape() const;
 	

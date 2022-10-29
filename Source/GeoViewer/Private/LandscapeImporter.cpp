@@ -5,6 +5,7 @@
 #include "Landscape.h"
 #include "LandscapeInfo.h"
 #include "LandscapeStreamingProxy.h"
+#include "SLandscapeSizeDlg.h"
 #include "SWeightMapImportDlg.h"
 #include "HAL/FileManagerGeneric.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,61 +24,72 @@ void FLandscapeImporter::Initialize(UWorld* InWorld, UGeoViewerEdModeConfig* InE
 	EdModeConfig = InEdModeConfig;
 }
 
-void FLandscapeImporter::LoadTile(FVector LandscapePosition)
+void FLandscapeImporter::LoadTile(FVector LandscapePosition, bool bLoadManyTiles/* = false*/)
 {
 	if (EdModeConfig && World)
 	{
+		NumOfTiles = FVector2D(1,1);
+
 		// Side length of a landscape tile in centimeters
 		const float TileLength = GetNumOfQuadsOneAxis() * 100;
 
-		// Calculate potential bottom corner position for landscape
-		FIntPoint IntPosition;
-		IntPosition.X = FMath::Floor(LandscapePosition.X / TileLength);
-		IntPosition.Y = FMath::Floor(LandscapePosition.Y / TileLength);
+		// Calculate bottom corner position for landscape
+		BottomCornerIndex.X = FMath::Floor(LandscapePosition.X / TileLength);
+		BottomCornerIndex.Y = FMath::Floor(LandscapePosition.Y / TileLength);
 
 		// Calculate bounds for new tile
-		FVector BottomCorner;
-		BottomCorner.X = IntPosition.X * TileLength;
-		BottomCorner.Y = IntPosition.Y * TileLength;
-		BottomCorner.Z = 0;
+        FVector BottomCorner;
+        BottomCorner.X = BottomCornerIndex.X * TileLength;
+        BottomCorner.Y = BottomCornerIndex.Y * TileLength;
+        BottomCorner.Z = 0;
 
-		const FVector TopCorner = BottomCorner + TileLength;
-		CurrentSectionOffset = IntPosition * GetNumOfQuadsOneAxis();
+		// Get WorldReferenceSystem
+		AWorldReferenceSystem* ReferenceSystem = AWorldReferenceSystem::GetWorldReferenceSystem(World);
+		if (!ReferenceSystem) return;
+		
+		if (bLoadManyTiles)
+		{
+			// Create new window to select the number of landscape tiles
+			TSharedRef<SWindow> NumOfTilesWindow = SNew(SWindow)
+				.Title(LOCTEXT("NumOfLandscapeTileWindowTitle", "Number Of Landscape Tiles"))
+				.ClientSize(FVector2D(400, 100))
+				.SupportsMaximize(false)
+				.SupportsMinimize(false);
 
+			const TSharedRef<SLandscapeSizeDlg> SizeDlg =
+				SNew(SLandscapeSizeDlg, NumOfTilesWindow, ReferenceSystem, BottomCorner, TileLength);
+			NumOfTilesWindow->SetContent(SizeDlg);
+
+			GEditor->EditorAddModalWindow(NumOfTilesWindow);
+
+			NumOfTiles = FVector2D(SizeDlg->GetXSize(), SizeDlg->GetYSize());
+		}
+
+		const FVector TopCorner = BottomCorner + FVector(NumOfTiles * TileLength, 0);
+		
+		// TODO: Redo this bit to work when loading many tiles
 		// Ensure this landscape tile doesn't already exist
+		/*
 		const ALandscape* LandscapeActor = GetLandscapeActor();
 		const ULandscapeInfo* LandscapeInfo = LandscapeActor->GetLandscapeInfo();
-
+		
 		if (LandscapeInfo->XYtoComponentMap.Contains(CurrentSectionOffset))
 		{
 			return;
 		}
+		*/
 
 		// Convert to geographical bounds
-		AWorldReferenceSystem* ReferenceSystem = AWorldReferenceSystem::GetWorldReferenceSystem(World);
-		if (!ReferenceSystem) return;
-		
-		// Get weight maps
 		FProjectedBounds TileBounds;
 		ReferenceSystem->EngineToProjected(TopCorner, TileBounds.TopLeft);
 		ReferenceSystem->EngineToProjected(BottomCorner, TileBounds.BottomRight);
 		
+		// Get weight maps
 		WeightMaps.Empty();
 		ImportWeightMap(WeightMaps, TileBounds);
-
-		// Add an additional 500 meters to be cropped off later on
-		// This should make the joins between landscape actors less noticeable
-		FVector TopCornerTile = TopCorner + (500 * 100);
-		FVector BottomCornerTile = BottomCorner - (500 * 100);
-		TopCornerTile.Z = 0;
-		BottomCornerTile.Z = 0;
-		
-		FProjectedBounds ExtraTileBounds;
-		ReferenceSystem->EngineToProjected(TopCornerTile, ExtraTileBounds.TopLeft);
-		ReferenceSystem->EngineToProjected(BottomCornerTile, ExtraTileBounds.BottomRight);
 		
 		const TSharedRef<FGeoTileAPI> TileAPI = GetTileAPI();
-		TileAPI->LoadTile(ExtraTileBounds);
+		TileAPI->LoadTile(TileBounds);
 		
 		CachedTileAPI = TileAPI;
 	}
@@ -144,24 +156,26 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 			}
 		}
 
-		// Tile size in pixels
-		const float FinalTileLength = GetNumOfVerticesOneAxis();
-		const float TileLength = FinalTileLength + 1000;
+		const float InitialXSize = DatasetRef->GetRasterXSize();
+		const float InitialYSize = DatasetRef->GetRasterYSize();
 		
-		// Height data should be a square
-		const int SideLength = FMath::Sqrt((float)HeightData.Num());
+		// Size of one tile in pixels
+		const float TileLength = GetNumOfVerticesOneAxis();
 
+		// Size of final image containing all tiles
+		FIntVector2 FinalSize = GetTotalSize();
+		
 		// Create new dataset so the height data can be resized
 		const GDALDatasetRef HeightDataset =
-			FGDALWarp::CreateDataset(HeightData, SideLength, SideLength, ERGBFormat::Gray);
+			FGDALWarp::CreateDataset(HeightData, InitialXSize, InitialYSize, ERGBFormat::Gray);
 
 		TArray<FString> FilesToDelete;
 		
-		// Resize height map
+		// Resize height data
 		FString DatasetFilePath;
 		GDALDatasetRef ResizedHeightDataset = FGDALWarp::ResizeDataset(
 			HeightDataset.Get(),
-			FIntVector2(TileLength, TileLength),
+			FinalSize,
 			DatasetFilePath,
 			EdModeConfig->LandscapeResamplingAlgorithm
 			);
@@ -170,23 +184,18 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 		TArray<uint16> HeightDataResized;
 		FGDALWarp::GetRawImage(ResizedHeightDataset, HeightDataResized);
 		
-		TArray<uint16> HeightDataCropped;
-		HeightDataCropped.Reserve(FinalTileLength * FinalTileLength);
-
-		// Crop height data down to final size
-		const int MinXY = 500;
-		for (int y = 0; y < FinalTileLength; y++)
+		// Cut giant image down into tiles then add create landscape proxies from this data.
+		for (int x = 0; x < NumOfTiles.X; x++)
 		{
-			for (int x = 0; x < FinalTileLength; x++)
+			for (int y = 0; y <NumOfTiles.Y; y++)
 			{
-				const int Index = x + MinXY + (y * TileLength) + (MinXY * TileLength);
-				HeightDataCropped.Add(HeightDataResized[Index]);
+				const FIntVector2 TilePos(x, y);
+				
+				TArray<uint16> HeightDataCropped;
+				Crop(FinalSize, TileLength, TilePos, HeightDataResized, HeightDataCropped);
+				
+				CreateLandscapeProxy(HeightDataCropped, TilePos);
 			}
-		}
-
-		if (HeightDataCropped.Num() == FinalTileLength * FinalTileLength)
-		{
-			CreateLandscapeProxy(HeightDataCropped);
 		}
 		
 		// Remove all datasets from memory
@@ -200,20 +209,30 @@ void FLandscapeImporter::OnTileDataLoaded(GDALDataset* Dataset)
 	CachedTileAPI.Reset();
 }
 
-void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) const
+void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData, const FIntVector2 LandscapePos) const
 {
 	// Prepare weight maps for landscape
 	TArray<FLandscapeImportLayerInfo> LandscapeImportLayers;
 	
 	if (EdModeConfig->Layers.Num() >= WeightMaps.Num())
 	{
+		// Size of one tile in pixels
+		const float TileLength = GetNumOfVerticesOneAxis();
+		
+		FIntVector2 OriginalWeightMapSize = GetTotalSize();
+		
 		for (int LayerIdx = 0; LayerIdx < WeightMaps.Num(); LayerIdx++)
 		{
 			FLandscapeImportLayerInfo LayerInfo = EdModeConfig->Layers[LayerIdx];
 
 			if (LayerInfo.LayerInfo.Get())
 			{
-				LayerInfo.LayerData = WeightMaps[LayerIdx];
+				// Crop weightmap down to just this landscape proxy
+				TArray<uint8> NewLayer;
+				Crop(OriginalWeightMapSize, TileLength, LandscapePos, WeightMaps[LayerIdx], NewLayer);
+
+				// Add weightmap
+				LayerInfo.LayerData = NewLayer;
 				LandscapeImportLayers.Add(LayerInfo);
 			}
 			else
@@ -241,12 +260,14 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 	
 	// Create Landscape Proxy
 	const ALandscape* LandscapeActor = GetLandscapeActor();
+
+	FIntPoint SectionOffset = GetSectionOffset(BottomCornerIndex + FIntPoint(LandscapePos.X, LandscapePos.Y));
 	
 	ALandscapeStreamingProxy* LandscapeProxy = World->SpawnActor<ALandscapeStreamingProxy>();
 	LandscapeProxy->LandscapeMaterial = EdModeConfig->LandscapeMaterial;
 	LandscapeProxy->SetLandscapeGuid(FGuid::NewGuid());
 	LandscapeProxy->SetActorScale3D(GetLandscapeScale());
-	LandscapeProxy->LandscapeSectionOffset = CurrentSectionOffset;
+	LandscapeProxy->LandscapeSectionOffset = SectionOffset;
 	LandscapeActor->GetLandscapeInfo()->FixupProxiesTransform();
 	
 	TMap<FGuid, TArray<uint16>> HeightmapDataPerLayers;
@@ -260,8 +281,8 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 
 	const FGuid LandscapeGuid = LandscapeActor->GetLandscapeGuid();
 
-	const int MinX = CurrentSectionOffset.X;
-	const int MinY = CurrentSectionOffset.Y;
+	const int MinX = SectionOffset.X;
+	const int MinY = SectionOffset.Y;
 	const int MaxX = MinX + SideLength - 1;
 	const int MaxY = MinY + SideLength - 1;
 
@@ -278,6 +299,24 @@ void FLandscapeImporter::CreateLandscapeProxy(const TArray<uint16>& HeightData) 
 		MaterialLayerDataPerLayer,
 		ELandscapeImportAlphamapType::Additive
 		);
+}
+
+FIntVector2 FLandscapeImporter::GetTotalSize() const
+{
+	// Size of one tile in pixels
+	const float TileLength = GetNumOfVerticesOneAxis();
+
+	// Size of final image containing all tiles
+	FIntVector2 FinalSize;
+	FinalSize.X = TileLength * NumOfTiles.X;
+	FinalSize.Y = TileLength * NumOfTiles.Y;
+
+	return FinalSize;
+}
+
+FIntPoint FLandscapeImporter::GetSectionOffset(const FIntPoint LandscapeIndex) const
+{
+	return LandscapeIndex * GetNumOfQuadsOneAxis();
 }
 
 ALandscape* FLandscapeImporter::GetLandscapeActor() const
@@ -383,9 +422,6 @@ void FLandscapeImporter::ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjec
 
 	// Separate raw image into layers
 	TArray<TArray<uint8>> Layers;
-
-	const float TileLength = GetNumOfVerticesOneAxis();
-	FIntVector2 RequiredResolution(TileLength, TileLength);
 	
 	// Create each layer
 	for (int LayerIdx = 0; LayerIdx < NumOfLayers; LayerIdx++)
@@ -404,6 +440,8 @@ void FLandscapeImporter::ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjec
 		
 		Layers.Add(Layer);
 	}
+	
+	FIntVector2 RequiredResolution = GetTotalSize();
 	
 	if (ReferenceSystem)
 	{

@@ -68,6 +68,16 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 						.Text(LOCTEXT("GeoViewerLoadTerrainButton", "Load Terrain"))
 					]
 				]
+				+ SHorizontalBox::Slot() // Bulk Load terrain button
+				.AutoWidth()
+				[
+					SNew(SButton)
+					.OnClicked(this, &FGeoViewerEdModeToolkit::OnBulkLoadTerrainButtonPressed)
+					[
+						SNew(STextBlock)
+						.Text(LOCTEXT("GeoViewerLoadTerrainButton", "Bulk Load Terrain"))
+					]
+				]
 			]
 			+ SVerticalBox::Slot() // Current Position Data
 			.Padding(FMargin(5))
@@ -150,6 +160,16 @@ FReply FGeoViewerEdModeToolkit::OnLoadTerrainButtonPressed()
 	if (FGeoViewerEdMode* EdMode = GetEditorMode())
 	{
 		EdMode->LoadTerrainAroundUser();
+	}
+	
+	return FReply::Handled();
+}
+
+FReply FGeoViewerEdModeToolkit::OnBulkLoadTerrainButtonPressed()
+{
+	if (FGeoViewerEdMode* EdMode = GetEditorMode())
+	{
+		EdMode->LoadTerrainAroundUser(true);
 	}
 	
 	return FReply::Handled();
