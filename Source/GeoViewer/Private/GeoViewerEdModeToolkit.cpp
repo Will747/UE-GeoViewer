@@ -75,7 +75,7 @@ void FGeoViewerEdModeToolkit::Init(const TSharedPtr<IToolkitHost>& InitToolkitHo
 					.OnClicked(this, &FGeoViewerEdModeToolkit::OnBulkLoadTerrainButtonPressed)
 					[
 						SNew(STextBlock)
-						.Text(LOCTEXT("GeoViewerLoadTerrainButton", "Bulk Load Terrain"))
+						.Text(LOCTEXT("GeoViewerBulkLoadTerrainButton", "Bulk Load Terrain"))
 					]
 				]
 			]
