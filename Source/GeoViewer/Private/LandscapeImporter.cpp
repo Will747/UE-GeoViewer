@@ -424,7 +424,7 @@ void FLandscapeImporter::ImportWeightMap(TArray<TArray<uint8>>& RawData, FProjec
 	TArray<TArray<uint8>> Layers;
 	
 	// Create each layer
-	for (int LayerIdx = 0; LayerIdx < NumOfLayers; LayerIdx++)
+	for (int LayerIdx = 0; LayerIdx <= NumOfLayers; LayerIdx++)
 	{
 		TArray<uint8> Layer;
 		Layer.Init(0, RawMergedWeightMap.Num());
