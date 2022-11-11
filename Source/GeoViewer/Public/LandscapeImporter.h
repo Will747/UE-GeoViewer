@@ -84,8 +84,8 @@ template <typename T>
 void FLandscapeImporter::Crop(FIntVector2& OriginalSize, const int TileLength, const FIntVector2 Pos, const TArray<T>& SourceImage,
 	TArray<T>& CroppedImage)
 {
-	const float MinX = TileLength * Pos.X;
-	const float MinY = TileLength * Pos.Y;
+	const int MinX = TileLength * Pos.X;
+	const int MinY = TileLength * Pos.Y;
 
 	CroppedImage.Empty(TileLength * TileLength);
 	
@@ -93,7 +93,7 @@ void FLandscapeImporter::Crop(FIntVector2& OriginalSize, const int TileLength, c
 	{
 		for (int x = 0; x < TileLength; x++)
 		{
-			const int Index = x + MinX + y * OriginalSize.X + MinY * OriginalSize.X;
+			const int Index = x + MinX + (y + MinY) * OriginalSize.X;
 			CroppedImage.Add(SourceImage[Index]);
 		}
 	}	
