@@ -6,6 +6,9 @@
 /** Holds the corner coordinates in lon, lat for a tile */
 struct FGeoBounds
 {
+	FGeoBounds() {}
+	FGeoBounds(TArray<FGeographicCoordinates>& Points);
+	
 	FGeographicCoordinates TopLeft;
 	FGeographicCoordinates BottomRight;
 

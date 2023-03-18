@@ -5,6 +5,53 @@
 /////////////////////////////////////////////////////
 // FGeoBounds
 
+FGeoBounds::FGeoBounds(TArray<FGeographicCoordinates>& Points)
+{
+	if (Points.Num() > 1)
+	{
+		// Find furthest corners as it may be a rotated or not perfect square
+		double LatMax = Points[0].Latitude;
+		double LatMin = Points[0].Latitude;
+		double LonMax = Points[0].Longitude;
+		double LonMin = Points[0].Longitude;
+		double AltMin = Points[0].Altitude;
+		double AltMax = Points[0].Altitude;
+
+		for (int i = 1; i < Points.Num(); i++)
+		{
+			if (Points[i].Latitude > LatMax)
+			{
+				LatMax = Points[i].Latitude;
+			}
+			else if (Points[i].Latitude < LatMin)
+			{
+				LatMin = Points[i].Latitude;
+			}
+
+			if (Points[i].Longitude > LonMax)
+			{
+				LonMax = Points[i].Longitude;
+			}
+			else if (Points[i].Longitude < LonMin)
+			{
+				LonMin = Points[i].Longitude;
+			}
+
+			if (Points[i].Altitude > AltMax)
+			{
+				AltMax = Points[i].Altitude;
+			}
+			else if (Points[i].Altitude < AltMin)
+			{
+				AltMin = Points[i].Altitude;
+			}
+		}
+
+		TopLeft = FGeographicCoordinates(LonMin, LatMin, AltMin);
+		BottomRight = FGeographicCoordinates(LonMax, LatMax, AltMax);
+	}
+}
+
 FString FGeoBounds::GetGeoJson() const
 {
 	const FString Top = "{\"type\":\"Polygon\",\"coordinates\":[[";
@@ -35,11 +82,28 @@ FString FGeoBounds::GetGeoJson() const
 
 FGeoBounds FProjectedBounds::ConvertToGeoBounds(AGeoViewerReferenceSystem* ReferenceSystem) const
 {
-	FGeoBounds Result;
-	ReferenceSystem->ProjectedToGeographic(TopLeft, Result.TopLeft);
-	ReferenceSystem->ProjectedToGeographic(BottomRight, Result.BottomRight);
+	// Calculate all four corners of the bounds.
+	const double XMin = TopLeft.X;
+	const double XMax = BottomRight.X;
+	const double YMin = BottomRight.Y;
+	const double YMax = TopLeft.Y;
 
-	return Result;
+	TArray<FVector> Corners; // Every corner of the bounds
+	Corners.Add(FVector(XMin, YMax, 0));
+	Corners.Add(FVector(XMax, YMax, 0));
+	Corners.Add(FVector(XMin, YMin, 0));
+	Corners.Add(FVector(XMax, YMin, 0));
+	
+	// Convert all coordinates to geo
+	TArray<FGeographicCoordinates> GeoCorners;
+	for (FVector Corner : Corners)
+	{
+		FGeographicCoordinates NewGeoCoord;
+		ReferenceSystem->ProjectedToGeographic(Corner, NewGeoCoord);
+		GeoCorners.Add(NewGeoCoord);
+	}
+
+	return FGeoBounds(GeoCorners);
 }
 
 /////////////////////////////////////////////////////
