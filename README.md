@@ -1,5 +1,4 @@
 # UE-GeoViewer
-### This plugin is still being worked on and not complete.
 A plugin for Unreal Engine that overlays real world maps into the editor making it easier to precisely place items in the world and imports real world terrain. 
 
 ![Placing A tree with the overlay active](docs/UE5Overlay.png)
